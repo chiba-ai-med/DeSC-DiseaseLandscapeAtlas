@@ -1,0 +1,51 @@
+# DeSC-DiseaseLandscapeAtlas configuration
+
+# ---------- Input data (from DeSC) ----------
+data:
+  coo_path: "data/coo.txt.zst"
+  col_ids_path: "data/col_id_disease_name_small.txt"
+  row_ids_path: "data/row_id_number_small.txt"
+  window_lookup_path: "data/rowid_window_lookup.tsv"
+  tekiyo_path: "data/tekiyo.csv"
+  hospitalization_path: "data/person_hospitalization.tsv"
+  disease_families_tsv: "config/disease_families.tsv"
+
+# ---------- Disease families ----------
+# Read dynamically from disease_families.tsv in each .smk file.
+# hf_cancer is a legacy combined cohort (heart_failure + cancer),
+# not defined in disease_families.tsv; excluded from the standard pipeline.
+disease_families_extra: []
+
+# ---------- Preprocessing ----------
+preproc: "all_comorbid"
+
+# ---------- PCA ----------
+pca:
+  dim: 7
+  chunksize: 300000
+
+# ---------- Landscaper ----------
+landscaper:
+  cores: 1
+  memgb: 100
+  input_sparse: true
+
+# ---------- Cox sanity check ----------
+cox:
+  outcomes:
+    - mortality
+    - hospitalization
+  covariates: "age + sex"
+  energy_standardize: true  # Z-standardize within cohort
+
+# ---------- Output directories ----------
+output_dir: "output"
+plot_dir: "plot"
+summary_dir: "summary"
+
+# ---------- Container images ----------
+containers:
+  onlinepca: "docker://ghcr.io/rikenbit/onlinepcajl:df65589"
+  landscaper: "docker://ghcr.io/chiba-ai-med/landscaper:main"
+  mmjl: "docker://koki/mmjl:20250725"
+  analysis: "docker://koki/desc_onlinexxx_landscaper:20260602"
