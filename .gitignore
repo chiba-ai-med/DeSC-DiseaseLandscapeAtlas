@@ -1,7 +1,9 @@
 data/
 output/
 plot/
+!plot/Figures/
 summary/
+!summary/applicability/*.tsv
 logs/
 benchmarks/
 .snakemake/

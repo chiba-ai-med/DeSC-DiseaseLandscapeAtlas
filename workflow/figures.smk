@@ -17,6 +17,13 @@ rule all:
                disease=DISEASES),
         expand("plot/{disease}/trajectory_heatmap.png",
                disease=DISEASES),
+        expand("plot/{disease}/trajectory_energy_per_basin.png",
+               disease=DISEASES),
+        expand("plot/{disease}/trajectory_entropy.png",
+               disease=DISEASES),
+        "summary/applicability/disease_metrics.tsv",
+        "summary/applicability/entropy_summary.tsv",
+        "summary/applicability/panel_B_km_energy_tertile.png",
 
 rule plot_landscape:
     input:
@@ -209,4 +216,112 @@ rule pca_pairs_fullperiod:
             {wildcards.disease} \
             $(dirname {output.png}) \
             >& {log}
+        """
+
+rule trajectory_per_basin:
+    input:
+        traj="plot/{disease}/trajectories_dead.tsv",
+    output:
+        energy="plot/{disease}/trajectory_energy_per_basin.png",
+    container:
+        CONTAINER_ANALYSIS
+    resources:
+        mem_mb=80000
+    log:
+        "logs/trajectory_per_basin_{disease}.log"
+    shell:
+        """
+        Rscript src/trajectory_per_basin.R \
+            {wildcards.disease} \
+            $(dirname {output.energy}) \
+            >& {log}
+        """
+
+rule trajectory_entropy_sankey:
+    input:
+        traj="plot/{disease}/trajectories_dead.tsv",
+    output:
+        entropy="plot/{disease}/trajectory_entropy.png",
+    container:
+        CONTAINER_ANALYSIS
+    resources:
+        mem_mb=80000
+    log:
+        "logs/trajectory_entropy_sankey_{disease}.log"
+    shell:
+        """
+        Rscript src/trajectory_entropy_sankey.R \
+            {wildcards.disease} \
+            $(dirname {output.entropy}) \
+            >& {log}
+        """
+
+rule applicability_analysis:
+    input:
+        atlas="summary/atlas_summary.tsv",
+        patients=expand("output/{disease}/" + PREPROC + "/patient/patient_scores.tsv",
+                        disease=DISEASES),
+        trajectories=expand("plot/{disease}/trajectories_dead.tsv",
+                            disease=DISEASES),
+    output:
+        metrics="summary/applicability/disease_metrics.tsv",
+    container:
+        CONTAINER_ANALYSIS
+    log:
+        "logs/applicability_analysis.log"
+    shell:
+        """
+        Rscript src/applicability_analysis.R >& {log}
+        """
+
+rule figure_representative_comparison:
+    input:
+        atlas="summary/atlas_summary.tsv",
+        metrics="summary/applicability/disease_metrics.tsv",
+        trajectories=expand("plot/{disease}/trajectories_dead.tsv",
+                            disease=["diabetes", "dementia", "heart_failure", "sepsis"]),
+    output:
+        panel_a="summary/applicability/panel_A_energy_trajectory.png",
+        panel_c="summary/applicability/panel_C_state_heatmap.png",
+    container:
+        CONTAINER_ANALYSIS
+    log:
+        "logs/figure_representative_comparison.log"
+    shell:
+        """
+        Rscript src/figure_representative_comparison.R >& {log}
+        """
+
+rule figure_km_comparison:
+    input:
+        patients=expand("output/{disease}/" + PREPROC + "/patient/patient_scores.tsv",
+                        disease=["diabetes", "dementia", "heart_failure", "sepsis"]),
+    output:
+        panel_b="summary/applicability/panel_B_km_energy_tertile.png",
+    container:
+        CONTAINER_ANALYSIS
+    log:
+        "logs/figure_km_comparison.log"
+    shell:
+        """
+        Rscript src/figure_km_comparison.R >& {log}
+        """
+
+rule plot_entropy_summary:
+    input:
+        atlas="summary/atlas_summary.tsv",
+        metrics="summary/applicability/disease_metrics.tsv",
+        entropies=expand("plot/{disease}/trajectory_entropy.tsv",
+                         disease=DISEASES),
+        trajectories=expand("plot/{disease}/trajectories_dead.tsv",
+                            disease=DISEASES),
+    output:
+        summary="summary/applicability/entropy_summary.tsv",
+    container:
+        CONTAINER_ANALYSIS
+    log:
+        "logs/plot_entropy_summary.log"
+    shell:
+        """
+        Rscript src/plot_entropy_summary.R >& {log}
         """
