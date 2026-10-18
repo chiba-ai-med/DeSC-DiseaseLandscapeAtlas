@@ -1,80 +1,90 @@
 # DeSC-DiseaseLandscapeAtlas
 
 Disease-family-specific Energy Landscape Analysis (ELA) on DeSC claims data.
+51 disease families, full ICD-10 code space (7,000+ codes), exact PCA via
+OnlinePCA.jl.
 
 ## Motivation
 
 The prior whole-cohort ELA (`DeSC-OnlineXXX-Landscaper`) produced a landscape
-whose low-energy basins reflected high-frequency lifestyle diseases. The
-resulting Energy Cox showed *higher* energy = *higher* risk — essentially a
-"recording atypicality" score rather than a disease-progression landscape.
+whose low-energy basins reflected high-frequency lifestyle diseases. This
+project rebuilds the analysis with **disease-family-specific index cohorts**,
+yielding landscapes where **low-energy basins correspond to clinically severe
+states** (Energy HR < 1 in the mortality/hospitalization Cox).
 
-This project rebuilds the analysis with **disease-family-specific index
-cohorts** and explores preprocessing strategies that yield landscapes where
-**low-energy basins correspond to clinically severe / post-complication states**
-(i.e., Energy HR < 1 in the mortality/hospitalization Cox).
+## Disease Families
 
-## Pilot Disease Families
-
-| Key        | Name               | ICD-10 Codes             |
-|------------|--------------------|--------------------------|
-| dementia   | Dementia           | F00-F03, G30             |
-| diabetes   | Diabetes mellitus  | E10-E14                  |
-| hf_cancer  | Heart failure / Cancer | I50, C00-C97         |
-
-## Preprocessing Strategies
-
-| Setting       | Description                                        |
-|---------------|----------------------------------------------------|
-| all_comorbid  | All comorbidity codes (index disease excluded)      |
-| drop_top10    | Remove top-10 most frequent codes in cohort         |
-| drop_top25    | Remove top-25 most frequent codes in cohort         |
-| drop_top50    | Remove top-50 most frequent codes in cohort         |
-| drop_top100   | Remove top-100 most frequent codes in cohort        |
-| complications | Restrict to severity/complication-related codes     |
+51 diseases defined in `config/disease_families.tsv`. Preprocessing: `all_comorbid`
+(all comorbidity codes, index disease excluded). PCA dimension: 7.
 
 ## Workflow
 
+Each `.smk` file is independent. All share `workflow/common.smk`. Run in order:
+
 ```bash
+COMMON="--configfile config/config.yaml --cores <n> --use-singularity --singularity-args '-B /home/koki/dev/DeSC-OnlineXXX-Landscaper/data:/home/koki/dev/DeSC-OnlineXXX-Landscaper/data'"
+
 # 1. Define index cohorts
-snakemake -s workflow/cohort.smk --cores <n>
+snakemake -s workflow/cohort.smk $COMMON
 
-# 2. Build feature matrices
-snakemake -s workflow/matrix.smk --cores <n>
+# 2. Build feature matrices (binary COO + zstd)
+snakemake -s workflow/matrix.smk $COMMON
 
-# 3. Run OnlinePCA
-snakemake -s workflow/onlinepca.smk --cores <n>
+# 3. Run OnlinePCA (exact, out-of-core)
+snakemake -s workflow/onlinepca.smk $COMMON
 
-# 4. Run Landscaper (ELA)
-snakemake -s workflow/landscaper.smk --cores <n>
+# 4. Run Landscaper (ELA: 128 patterns → basins → energy)
+snakemake -s workflow/landscaper.smk $COMMON
 
-# 5. Cox energy sanity check
-snakemake -s workflow/cox.smk --cores <n>
+# 5. Cox energy sanity check (death + hospitalization)
+snakemake -s workflow/cox.smk $COMMON
 
-# 6. Compile summary table
-snakemake -s workflow/summary.smk --cores <n>
+# 6. Compile cross-disease summary
+snakemake -s workflow/summary.smk $COMMON
 
-# 7. Generate figures
-snakemake -s workflow/figures.smk --cores <n>
+# 7. Build per-patient scores table
+snakemake -s workflow/patient.smk $COMMON
+
+# 8. PCA pair density plots
+snakemake -s workflow/pca_pairs.smk $COMMON
+
+# 9. Per-disease analyses (KM, tagcloud, trajectory-to-death)
+snakemake -s workflow/analysis.smk $COMMON
+
+# 10. Figures (landscape atlas, KM comparison, code trajectory)
+snakemake -s workflow/figures.smk $COMMON
+
+# 11. Comparison with conventional risk scores (CCI, Elixhauser)
+snakemake -s workflow/comparison.smk $COMMON
 ```
 
 ## Output Structure
 
 ```
-output/{disease_family}/{preproc}/
-  cohort/          # index cohort + feature matrix
-  pca/{dim}/       # PCA scores, loadings
-  landscaper/{dim}/ # Allstates, Basin, SubGraph, Energy
-  cox/{dim}/       # Energy sanity check results
+output/{disease}/all_comorbid/
+  cohort/            — index_cohort.tsv, feature_matrix.coo.zst, person_map.tsv
+  pca/7/             — Scores.mm, Eigen_vectors.csv
+  landscaper/7/      — Allstates, Basin, Energy
+  cox/7/             — energy_sanity_check.tsv, energy_sanity_check_per_basin.tsv
+  patient/           — patient_scores.tsv
+  comparison/        — comorbidity_indices.tsv, risk_score_comparison.tsv
 summary/
-  atlas_summary.tsv  # Cross-disease x preprocessing summary
-plot/
-  {disease_family}/{preproc}/{dim}/  # Landscape + Cox figures
+  atlas_summary.tsv            — PASS/FAIL across 51 diseases
+  risk_comparison/             — CCI/Elixhauser comparison, energy correlates
+plot/{disease}/                — KM, tagcloud, trajectory, PCA pairs
+plot/{disease}/all_comorbid/7/ — landscape figures
+plot/atlas_heatmap.png         — PASS/FAIL heatmap
 ```
+
+## Container Images
+
+- `ghcr.io/rikenbit/onlinepcajl:df65589` — OnlinePCA.jl
+- `ghcr.io/chiba-ai-med/landscaper:main` — Landscaper
+- `docker://koki/desc_onlinexxx_landscaper:20260602` — Julia + R analysis
 
 ## Requirements
 
 - Snakemake >= 8.11.1
-- Julia (OnlinePCA.jl)
-- R (survival, data.table, ggplot2)
-- Landscaper container: `ghcr.io/chiba-ai-med/landscaper:main`
+- Singularity/Apptainer
+- Julia (OnlinePCA.jl, MatrixMarket)
+- R (survival, data.table, ggplot2, survminer, ggwordcloud, scales)

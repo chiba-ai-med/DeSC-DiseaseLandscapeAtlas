@@ -24,6 +24,30 @@ rule all:
         "summary/applicability/disease_metrics.tsv",
         "summary/applicability/entropy_summary.tsv",
         "summary/applicability/panel_B_km_energy_tertile.png",
+        expand("plot/{disease}/traj_hosp_heatmap.png",
+               disease=DISEASES),
+        expand("plot/{disease}/traj_hosp_energy_per_basin.png",
+               disease=DISEASES),
+        expand("plot/{disease}/traj_hosp_entropy.png",
+               disease=DISEASES),
+        expand("plot/{disease}/km_per_basin_hosp.png",
+               disease=DISEASES),
+        "summary/applicability_hosp/disease_metrics_hosp.tsv",
+        expand("output/{disease}/" + PREPROC + "/cox/" + DIM + "/energy_sanity_check_per_basin_hosp.tsv",
+               disease=DISEASES),
+        "summary/applicability_hosp/entropy_summary.tsv",
+        "summary/applicability_hosp/panel_A_energy_trajectory.png",
+        "summary/applicability_hosp/panel_B_km_energy_tertile.png",
+        expand("plot/{disease}/basin_code_trajectory_death.tsv",
+               disease=DISEASES),
+        expand("plot/{disease}/basin_code_trajectory_hosp.tsv",
+               disease=DISEASES),
+        expand("plot/{disease}/basin_code_stacked_death_done.flag",
+               disease=DISEASES),
+        expand("plot/{disease}/basin_code_stacked_hosp_done.flag",
+               disease=DISEASES),
+        expand("plot/{disease}/pattern_code_distribution.png",
+               disease=DISEASES),
 
 rule plot_landscape:
     input:
@@ -307,6 +331,118 @@ rule figure_km_comparison:
         Rscript src/figure_km_comparison.R >& {log}
         """
 
+rule trajectory_to_hospitalization:
+    input:
+        scores="output/{disease}/" + PREPROC + "/patient/patient_scores.tsv",
+        person_map="output/{disease}/" + PREPROC + "/cohort/person_map.tsv",
+        allstates="output/{disease}/" + PREPROC + "/landscaper/" + DIM + "/Allstates.tsv",
+        subgraph="output/{disease}/" + PREPROC + "/landscaper/" + DIM + "/SubGraph.tsv",
+        energy="output/{disease}/" + PREPROC + "/landscaper/" + DIM + "/E.tsv",
+        scores_mm="output/{disease}/" + PREPROC + "/pca/" + DIM + "/Scores.mm",
+        window_lookup=config["data"]["window_lookup_path"],
+        hosp="output/{disease}/" + PREPROC + "/cohort/person_hospitalization_specific.tsv",
+    output:
+        heatmap="plot/{disease}/traj_hosp_heatmap.png",
+        traj="plot/{disease}/trajectories_hospitalized.tsv",
+    container:
+        CONTAINER_ANALYSIS
+    resources:
+        mem_mb=80000
+    log:
+        "logs/trajectory_hosp_{disease}.log"
+    shell:
+        """
+        Rscript src/trajectory_to_hospitalization.R \
+            {wildcards.disease} \
+            output/{wildcards.disease}/{PREPROC} \
+            $(dirname {output.heatmap}) \
+            {input.window_lookup} \
+            {input.hosp} \
+            >& {log}
+        """
+
+rule trajectory_per_basin_hosp:
+    input:
+        traj="plot/{disease}/trajectories_hospitalized.tsv",
+    output:
+        energy="plot/{disease}/traj_hosp_energy_per_basin.png",
+    container:
+        CONTAINER_ANALYSIS
+    resources:
+        mem_mb=80000
+    log:
+        "logs/trajectory_per_basin_hosp_{disease}.log"
+    shell:
+        """
+        Rscript src/trajectory_per_basin_hosp.R \
+            {wildcards.disease} \
+            $(dirname {output.energy}) \
+            >& {log}
+        """
+
+rule trajectory_entropy_sankey_hosp:
+    input:
+        traj="plot/{disease}/trajectories_hospitalized.tsv",
+    output:
+        entropy="plot/{disease}/traj_hosp_entropy.png",
+    container:
+        CONTAINER_ANALYSIS
+    resources:
+        mem_mb=80000
+    log:
+        "logs/trajectory_entropy_sankey_hosp_{disease}.log"
+    shell:
+        """
+        Rscript src/trajectory_entropy_sankey_hosp.R \
+            {wildcards.disease} \
+            $(dirname {output.entropy}) \
+            >& {log}
+        """
+
+rule km_per_basin_hosp:
+    input:
+        scores="output/{disease}/" + PREPROC + "/patient/patient_scores.tsv",
+        hosp="output/{disease}/" + PREPROC + "/cohort/person_hospitalization_specific.tsv",
+        tekiyo=TEKIYO,
+    output:
+        png="plot/{disease}/km_per_basin_hosp.png",
+    container:
+        CONTAINER_ANALYSIS
+    resources:
+        mem_mb=10000
+    log:
+        "logs/km_per_basin_hosp_{disease}.log"
+    shell:
+        """
+        Rscript src/km_per_basin_hosp.R \
+            {wildcards.disease} \
+            {input.scores} \
+            {input.hosp} \
+            {input.tekiyo} \
+            $(dirname {output.png}) \
+            >& {log}
+        """
+
+rule applicability_analysis_hosp:
+    input:
+        atlas="summary/atlas_summary.tsv",
+        hosp_cox=expand("output/{disease}/" + PREPROC + "/cox/" + DIM + "/energy_sanity_check_hosp_specific.tsv",
+                        disease=DISEASES),
+        patients=expand("output/{disease}/" + PREPROC + "/patient/patient_scores.tsv",
+                        disease=DISEASES),
+        trajectories=expand("plot/{disease}/trajectories_hospitalized.tsv",
+                            disease=DISEASES),
+    output:
+        metrics="summary/applicability_hosp/disease_metrics_hosp.tsv",
+    container:
+        CONTAINER_ANALYSIS
+    log:
+        "logs/applicability_analysis_hosp.log"
+    shell:
+        """
+        Rscript src/applicability_analysis_hosp.R >& {log}
+        """
+
 rule plot_entropy_summary:
     input:
         atlas="summary/atlas_summary.tsv",
@@ -324,4 +460,192 @@ rule plot_entropy_summary:
     shell:
         """
         Rscript src/plot_entropy_summary.R >& {log}
+        """
+
+rule cox_per_basin_hosp:
+    input:
+        scores="output/{disease}/" + PREPROC + "/patient/patient_scores.tsv",
+        hosp="output/{disease}/" + PREPROC + "/cohort/person_hospitalization_specific.tsv",
+        tekiyo=TEKIYO,
+    output:
+        tsv="output/{disease}/" + PREPROC + "/cox/" + DIM + "/energy_sanity_check_per_basin_hosp.tsv",
+    container:
+        CONTAINER_ANALYSIS
+    log:
+        "logs/cox_per_basin_hosp_{disease}.log"
+    shell:
+        """
+        Rscript src/cox_per_basin_hosp.R \
+            {wildcards.disease} \
+            {input.scores} \
+            {input.hosp} \
+            {input.tekiyo} \
+            {output.tsv} \
+            >& {log}
+        """
+
+rule plot_entropy_summary_hosp:
+    input:
+        metrics="summary/applicability_hosp/disease_metrics_hosp.tsv",
+        hosp_cox=expand("output/{disease}/" + PREPROC + "/cox/" + DIM + "/energy_sanity_check_hosp_specific.tsv",
+                        disease=DISEASES),
+        entropies=expand("plot/{disease}/traj_hosp_entropy.tsv",
+                         disease=DISEASES),
+        trajectories=expand("plot/{disease}/trajectories_hospitalized.tsv",
+                            disease=DISEASES),
+    output:
+        summary="summary/applicability_hosp/entropy_summary.tsv",
+    container:
+        CONTAINER_ANALYSIS
+    log:
+        "logs/plot_entropy_summary_hosp.log"
+    shell:
+        """
+        Rscript src/plot_entropy_summary_hosp.R >& {log}
+        """
+
+rule figure_representative_comparison_hosp:
+    input:
+        hosp_cox=expand("output/{disease}/" + PREPROC + "/cox/" + DIM + "/energy_sanity_check_hosp_specific.tsv",
+                        disease=["diabetes", "dementia", "heart_failure", "sepsis"]),
+        trajectories=expand("plot/{disease}/trajectories_hospitalized.tsv",
+                            disease=["diabetes", "dementia", "heart_failure", "sepsis"]),
+    output:
+        panel_a="summary/applicability_hosp/panel_A_energy_trajectory.png",
+        panel_c="summary/applicability_hosp/panel_C_state_heatmap.png",
+    container:
+        CONTAINER_ANALYSIS
+    log:
+        "logs/figure_representative_comparison_hosp.log"
+    shell:
+        """
+        Rscript src/figure_representative_comparison_hosp.R >& {log}
+        """
+
+rule figure_km_comparison_hosp:
+    input:
+        patients=expand("output/{disease}/" + PREPROC + "/patient/patient_scores.tsv",
+                        disease=["diabetes", "dementia", "heart_failure", "sepsis"]),
+        hosp=expand("output/{disease}/" + PREPROC + "/cohort/person_hospitalization_specific.tsv",
+                    disease=["diabetes", "dementia", "heart_failure", "sepsis"]),
+    output:
+        panel_b="summary/applicability_hosp/panel_B_km_energy_tertile.png",
+    container:
+        CONTAINER_ANALYSIS
+    log:
+        "logs/figure_km_comparison_hosp.log"
+    shell:
+        """
+        Rscript src/figure_km_comparison_hosp.R >& {log}
+        """
+
+rule code_trajectory_death:
+    input:
+        traj="plot/{disease}/trajectories_dead.tsv",
+        coo="output/{disease}/" + PREPROC + "/cohort/feature_matrix.coo.zst",
+        col_ids="output/{disease}/" + PREPROC + "/cohort/col_ids.txt",
+        row_ids="output/{disease}/" + PREPROC + "/cohort/row_ids.txt",
+        person_map="output/{disease}/" + PREPROC + "/cohort/person_map.tsv",
+        window_lookup=config["data"]["window_lookup_path"],
+        icd10_en="data/who_icd10_en.tsv",
+    output:
+        tsv="plot/{disease}/basin_code_trajectory_death.tsv",
+    container:
+        CONTAINER_ANALYSIS
+    resources:
+        mem_mb=80000
+    log:
+        "logs/code_traj_death_{disease}.log"
+    shell:
+        """
+        Rscript src/code_trajectory_per_basin.R \
+            {wildcards.disease} \
+            output/{wildcards.disease}/{PREPROC} \
+            $(dirname {output.tsv}) \
+            {input.traj} \
+            death \
+            {input.icd10_en} \
+            >& {log}
+        """
+
+rule code_trajectory_stacked_death:
+    input:
+        tsv="plot/{disease}/basin_code_trajectory_death.tsv",
+    output:
+        flag=touch("plot/{disease}/basin_code_stacked_death_done.flag"),
+    container:
+        CONTAINER_ANALYSIS
+    log:
+        "logs/code_stacked_death_{disease}.log"
+    shell:
+        """
+        Rscript src/plot_code_trajectory_stacked.R \
+            {wildcards.disease} \
+            $(dirname {output.flag}) \
+            death \
+            >& {log}
+        """
+
+rule code_trajectory_stacked_hosp:
+    input:
+        tsv="plot/{disease}/basin_code_trajectory_hosp.tsv",
+    output:
+        flag=touch("plot/{disease}/basin_code_stacked_hosp_done.flag"),
+    container:
+        CONTAINER_ANALYSIS
+    log:
+        "logs/code_stacked_hosp_{disease}.log"
+    shell:
+        """
+        Rscript src/plot_code_trajectory_stacked.R \
+            {wildcards.disease} \
+            $(dirname {output.flag}) \
+            hosp \
+            >& {log}
+        """
+
+rule pattern_code_distribution:
+    input:
+        enrichment="plot/{disease}/state_code_enrichment.tsv",
+    output:
+        png="plot/{disease}/pattern_code_distribution.png",
+    container:
+        CONTAINER_ANALYSIS
+    log:
+        "logs/pattern_code_dist_{disease}.log"
+    shell:
+        """
+        Rscript src/plot_pattern_code_distribution.R \
+            {wildcards.disease} \
+            $(dirname {output.png}) \
+            >& {log}
+        """
+
+rule code_trajectory_hosp:
+    input:
+        traj="plot/{disease}/trajectories_hospitalized.tsv",
+        coo="output/{disease}/" + PREPROC + "/cohort/feature_matrix.coo.zst",
+        col_ids="output/{disease}/" + PREPROC + "/cohort/col_ids.txt",
+        row_ids="output/{disease}/" + PREPROC + "/cohort/row_ids.txt",
+        person_map="output/{disease}/" + PREPROC + "/cohort/person_map.tsv",
+        window_lookup=config["data"]["window_lookup_path"],
+        icd10_en="data/who_icd10_en.tsv",
+    output:
+        tsv="plot/{disease}/basin_code_trajectory_hosp.tsv",
+    container:
+        CONTAINER_ANALYSIS
+    resources:
+        mem_mb=80000
+    log:
+        "logs/code_traj_hosp_{disease}.log"
+    shell:
+        """
+        Rscript src/code_trajectory_per_basin.R \
+            {wildcards.disease} \
+            output/{wildcards.disease}/{PREPROC} \
+            $(dirname {output.tsv}) \
+            {input.traj} \
+            hosp \
+            {input.icd10_en} \
+            >& {log}
         """
