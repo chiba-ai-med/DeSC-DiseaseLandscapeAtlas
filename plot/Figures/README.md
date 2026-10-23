@@ -135,15 +135,15 @@ are consistent with the energy landscape interpretation: basins are stable
 states that attract and retain patients, with inter-basin transitions governed
 by barrier heights.
 
-- `Fig04_trajectory.png` — Combined figure (assembled externally; now in Fig05/)
-- `Fig04a_trajectory_overview.png` — (a) Stable Basin / Stable Non-Basin / Moved
-- `Fig04a_trajectory_overview.tsv` — Summary data
-- `Fig04b_trajectory_basin_start.png` — (b) Basin start → same / different / non-basin
-- `Fig04b_trajectory_basin_start.tsv` — Summary data
-- `Fig04b_trajectory_basin_start_detail.tsv` — Per-disease detail
-- `Fig04c_trajectory_nonbasin_start.png` — (c) Non-Basin start → basin / stay
-- `Fig04c_trajectory_nonbasin_start.tsv` — Summary data
-- `Fig04c_trajectory_nonbasin_start_detail.tsv` — Per-disease detail
+- `Fig05_trajectory.png` — Combined figure (assembled externally)
+- `Fig05a_trajectory_overview.png` — (a) Stable Basin / Stable Non-Basin / Moved
+- `Fig05a_trajectory_overview.tsv` — Summary data
+- `Fig05b_trajectory_basin_start.png` — (b) Basin start → same / different / non-basin
+- `Fig05b_trajectory_basin_start.tsv` — Summary data
+- `Fig05b_trajectory_basin_start_detail.tsv` — Per-disease detail
+- `Fig05c_trajectory_nonbasin_start.png` — (c) Non-Basin start → basin / stay
+- `Fig05c_trajectory_nonbasin_start.tsv` — Summary data
+- `Fig05c_trajectory_nonbasin_start_detail.tsv` — Per-disease detail
 
 ### Fig 6: Thyroid disorder energy landscape rediscovers textbook hypothyroid complications and reveals basin dynamics
 
@@ -169,11 +169,11 @@ Basin 2 and Basin 4 join at higher barriers, reflecting greater separation.
 months before death. Basin proportions remain largely stable over the 20-month
 window, consistent with basins acting as traps that retain patients.
 
-- `Fig05_thyroid.png` — Combined figure (assembled externally; now in Fig06/)
-- `Fig05a_thyroid_basin3_vs_4.png` — (a) Basin 3 vs 4 top-10 log-odds ratio bar chart
-- `Fig05b_thyroid_km_inter_basin.png` — (b) Inter-basin KM (survminer, p < 0.0001)
-- `Fig05c_thyroid_disorder_discon.png` — (c) Disconnectivity graph (4 basins)
-- `Fig05d_thyroid_disorder_sankey.png` — (d) Temporal basin flow (months before death)
+- `Fig06_thyroid.png` — Combined figure (assembled externally)
+- `Fig06a_thyroid_basin3_vs_4.png` — (a) Basin 3 vs 4 top-10 log-odds ratio bar chart
+- `Fig06b_thyroid_km_inter_basin.png` — (b) Inter-basin KM (survminer, p < 0.0001)
+- `Fig06c_thyroid_disorder_discon.png` — (c) Disconnectivity graph (4 basins)
+- `Fig06d_thyroid_disorder_sankey.png` — (d) Temporal basin flow (months before death)
 
 ### Fig 7: Dementia — same mortality but divergent hospitalization between autonomic dysfunction and vascular risk basins (Symmetric)
 
@@ -193,8 +193,8 @@ to terminal prognosis. The Symmetric transition pattern (Fig 7a) confirms
 that these two basins exchange patients at equal rates (5.7% vs 5.9%/month),
 consistent with subtype coexistence rather than disease progression.
 
-- `Fig06_dementia.png` — Combined figure (assembled externally; now in Fig07/)
-- `Fig06_dementia_paired_km.png` — (a) Paired mortality vs hospitalization KM
+- `Fig07_dementia.png` — Combined figure (assembled externally)
+- `Fig07a_dementia_paired_km.png` — (a) Paired mortality vs hospitalization KM
 
 ### Fig 8: Transition dynamics across three ELA behavioral patterns (Anemia as Progressive representative)
 
@@ -210,11 +210,10 @@ a 45:1 asymmetry ratio. Basin 1 (CKD/dialysis, E = -0.990) absorbs
 patients from Basin 3 (dental/mild, E = +0.146) in a one-way progression
 consistent with CKD-anemia disease course.
 
-- `Fig07_anemia.png` — Combined figure (assembled externally)
-- `Fig_transition_anemia.png` — (c) Anemia 2×2 transition matrix
-- `Fig_transition_thyroid.png` — (b) Thyroid 4×4 transition matrix
-- `Fig_transition_dementia.png` — (a) Dementia 2×2 transition matrix
-- `Fig_transition_trio.png` — Generated combined version (superseded by Fig07_anemia.png)
+- `Fig08_anemia.png` — Combined figure (assembled externally)
+- `Fig08a_transition_dementia.png` — (a) Dementia 2×2 transition matrix
+- `Fig08b_transition_thyroid.png` — (b) Thyroid 4×4 transition matrix
+- `Fig08c_transition_anemia.png` — (c) Anemia 2×2 transition matrix
 
 ### Fig 9: Tuberculosis — ELA limitations for low-density single-basin diseases (Non-predictive)
 
@@ -230,8 +229,10 @@ rather than capturing disease severity. Cox analysis confirms HR > 1
 (reversed direction), indicating that lower energy does not predict worse
 outcomes in TB.
 
-- `Fig_sankey_tuberculosis.png` — (a) TB Sankey (Basin 1 + Non-Basin)
-- `Fig_tb_pcpattern.png` — (b) PC sign pattern heatmap (PC6 highlighted)
+- `Fig09_tuberculosis.png` — Combined figure (assembled externally)
+- `Fig09a_sankey_tuberculosis.png` — (a) TB Sankey (Basin 1 + Non-Basin)
+- `Fig09b_pcpattern.png` — (b) PC sign pattern heatmap (PC6 highlighted)
+- `Fig09c_pc6_loading.png` — (c) PC6 loading bar chart
 
 ## Supplementary Figures
 
