@@ -238,6 +238,7 @@ outcomes in TB.
 
 - `FigS_atlas_hospitalization.png` — Atlas overview for hospitalization
 - `FigS_jaccard_allblocks.png` — Jaccard clustering with 12 sub-cluster annotations (Fig 4 detail)
+- `FigS_jaccard_basin_level.png` — Basin-level (93×93) Jaccard clustering; same-disease basins split apart
 - `FigS_pattern_space.png` — Transition rate × asymmetry scatter (Table 1 backing)
 - `FigS_death_hosp.png` — Death rate vs hospitalization rate across basins (Fig 7 generalization)
 - `FigS_crossdisease_codes.png` — Top 10 cross-disease basin-discriminating codes (data-driven)
