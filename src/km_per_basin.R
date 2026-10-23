@@ -1,4 +1,8 @@
-## KM survival curves per basin, stratified by energy tertile
+## KM survival curves per basin
+##
+## Produces two plots:
+##   1. km_inter_basin.png — Basin comparison (Surv ~ basin_id)
+##   2. km_per_basin.png   — Within-basin energy tertile (faceted)
 ##
 ## Usage:
 ##   Rscript src/km_per_basin.R <disease> <patient_scores_tsv> \
@@ -7,7 +11,7 @@
 suppressPackageStartupMessages({
   library(data.table)
   library(survival)
-  library(ggplot2)
+  library(survminer)
 })
 
 args <- commandArgs(trailingOnly = TRUE)
@@ -17,6 +21,9 @@ tekiyo_path <- args[3]
 out_dir     <- args[4]
 
 dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
+
+disease_label <- gsub("_", " ", paste0(toupper(substring(disease, 1, 1)),
+                                        substring(disease, 2)))
 cat(sprintf("=== KM per basin: %s ===\n", disease))
 
 pt <- fread(scores_path)
@@ -38,12 +45,60 @@ pt[, event_death := as.integer(!is.na(shibou_flg_riyouka) & shibou_flg_riyouka =
 
 pt <- pt[is.finite(time_years) & time_years > 0 & is.finite(energy)]
 
-basins <- sort(unique(pt$basin_id))
+basins <- sort(unique(pt[basin_id > 0]$basin_id))
 n_basins <- length(basins)
 cat(sprintf("  %d patients, %d basins\n", nrow(pt), n_basins))
 
-# --- Per-basin KM (energy tertile within each basin) ---
-km_list <- list()
+## ── 1. Inter-basin KM (Basin membership comparison) ──
+if (n_basins >= 2) {
+  pt_ib <- pt[basin_id > 0]
+  pt_ib[, Basin := sprintf("Basin %d (n=%s)", basin_id,
+                            format(.N, big.mark = ",")), by = basin_id]
+  basin_order <- pt_ib[, .(bid = basin_id[1]), by = Basin][order(bid)]$Basin
+  pt_ib[, Basin := factor(Basin, levels = basin_order)]
+
+  fit_ib <- survfit(Surv(time_years, event_death) ~ Basin, data = pt_ib)
+
+  n_colors <- n_basins
+  basin_colors <- RColorBrewer::brewer.pal(max(3, n_colors), "Set1")[seq_len(n_colors)]
+  basin_labels <- levels(pt_ib$Basin)
+
+  g_ib <- ggsurvplot(fit_ib, data = pt_ib,
+    pval = TRUE, pval.method = TRUE,
+    conf.int = TRUE,
+    risk.table = TRUE,
+    risk.table.col = "strata",
+    risk.table.height = 0.25,
+    tables.y.text = TRUE,
+    palette = basin_colors,
+    xlab = "Years", ylab = "Survival probability",
+    title = sprintf("%s - Survival by basin", disease_label),
+    legend.title = "",
+    legend.labs = basin_labels,
+    ggtheme = theme_bw(base_size = 14),
+    tables.theme = theme_bw(base_size = 12),
+    font.main = c(16, "bold"),
+    font.x = 13, font.y = 13,
+    font.tickslab = 11,
+    risk.table.fontsize = 3.5,
+    surv.plot.height = 0.72
+  )
+
+  g_ib$plot <- g_ib$plot + theme(
+    axis.title.y = element_text(margin = margin(r = 0)),
+    plot.margin = margin(5, 15, 0, 2))
+  g_ib$table <- g_ib$table + theme(
+    plot.margin = margin(0, 15, 5, 2))
+
+  out_ib <- file.path(out_dir, "km_inter_basin.png")
+  png(out_ib, width = 10, height = 7, units = "in", res = 300, bg = "white")
+  print(g_ib)
+  dev.off()
+  cat(sprintf("  Written: %s\n", out_ib))
+}
+
+## ── 2. Per-basin KM (energy tertile within each basin) ──
+plot_list <- list()
 for (b in basins) {
   sub <- pt[basin_id == b]
   if (nrow(sub) < 30 || sum(sub$event_death) < 10) next
@@ -52,84 +107,51 @@ for (b in basins) {
   if (length(unique(brks)) < 4) next
 
   sub[, E_tertile := cut(energy, breaks = brks,
-                         labels = c("low", "mid", "high"),
+                         labels = c("Low", "Mid", "High"),
                          include.lowest = TRUE)]
   sub <- sub[!is.na(E_tertile)]
   if (nrow(sub) < 30) next
 
-  km <- survfit(Surv(time_years, event_death) ~ E_tertile, data = sub)
-  km_df <- data.frame(
-    time = km$time, surv = km$surv,
-    lower = km$lower, upper = km$upper,
-    strata = rep(names(km$strata), km$strata)
+  fit <- survfit(Surv(time_years, event_death) ~ E_tertile, data = sub)
+
+  g <- ggsurvplot(fit, data = sub,
+    pval = TRUE,
+    conf.int = TRUE,
+    risk.table = TRUE,
+    risk.table.col = "strata",
+    risk.table.height = 0.30,
+    palette = c("#3a6dd9", "gray50", "#d94a3a"),
+    xlab = "Years", ylab = "Survival probability",
+    title = sprintf("%s - Basin %d (n=%s)",
+                    disease_label, b, format(nrow(sub), big.mark = ",")),
+    legend.title = "Energy",
+    ggtheme = theme_bw(base_size = 13),
+    font.main = c(15, "bold"),
+    font.x = 12, font.y = 12,
+    font.tickslab = 10,
+    risk.table.fontsize = 3.2
   )
-  km_df$E_tertile <- factor(
-    sub("E_tertile=", "", km_df$strata),
-    levels = c("low", "mid", "high"))
-  km_df$basin <- paste0(disease, " / Basin ", b,
-                        " (n=", format(nrow(sub), big.mark=","), ")")
-  km_list[[length(km_list) + 1]] <- km_df
-}
 
-if (length(km_list) > 0) {
-  km_all <- do.call(rbind, km_list)
-
-  height <- 4 * ceiling(n_basins / 2)
-  width <- min(14, 7 * min(n_basins, 2))
-
-  g <- ggplot(km_all, aes(x = time, y = surv,
-                           color = E_tertile, fill = E_tertile)) +
-    geom_step(linewidth = 0.8) +
-    geom_ribbon(aes(ymin = lower, ymax = upper),
-                alpha = 0.12, color = NA) +
-    facet_wrap(~ basin, scales = "free_x") +
-    scale_color_manual(values = c(low = "#3a6dd9", mid = "gray50",
-                                   high = "#d94a3a")) +
-    scale_fill_manual(values = c(low = "#3a6dd9", mid = "gray50",
-                                  high = "#d94a3a")) +
-    labs(x = "Years", y = "Survival probability",
-         color = "Energy", fill = "Energy") +
-    theme_minimal(base_size = 13) +
-    theme(strip.text = element_text(face = "bold"))
-
-  out_path <- file.path(out_dir, "km_per_basin.png")
-  ggsave(out_path, g, width = width, height = height, dpi = 200)
+  out_path <- file.path(out_dir, sprintf("km_energy_basin%d.png", b))
+  png(out_path, width = 8, height = 6, units = "in", res = 300, bg = "white")
+  print(g)
+  dev.off()
   cat(sprintf("  Written: %s\n", out_path))
+  plot_list[[length(plot_list) + 1]] <- g
 }
 
-# --- Combined: all basins on one plot, colored by Basin×Energy ---
-if (n_basins >= 2) {
-  pt_valid <- pt[is.finite(energy) & is.finite(time_years) & time_years > 0]
-  pt_valid[, E_tertile := cut(energy,
-    breaks = quantile(energy, probs = c(0, 1/3, 2/3, 1), na.rm = TRUE),
-    labels = c("low", "mid", "high"),
-    include.lowest = TRUE), by = basin_id]
-  pt_valid <- pt_valid[!is.na(E_tertile)]
-  pt_valid[, group := paste0("Basin", basin_id, "_", E_tertile)]
+## Combined faceted version
+if (length(plot_list) >= 2) {
+  n_col <- min(2, length(plot_list))
+  n_row <- ceiling(length(plot_list) / n_col)
+  g_arr <- arrange_ggsurvplots(plot_list, ncol = n_col, nrow = n_row)
 
-  km2 <- survfit(Surv(time_years, event_death) ~ group, data = pt_valid)
-  km2_df <- data.frame(
-    time = km2$time, surv = km2$surv,
-    lower = km2$lower, upper = km2$upper,
-    strata = rep(names(km2$strata), km2$strata)
-  )
-  km2_df$group <- sub("group=", "", km2_df$strata)
-
-  n_groups <- length(unique(km2_df$group))
-  colors <- rep(c("#3a6dd9", "gray50", "#d94a3a"), n_basins)
-  ltypes <- rep(seq_len(n_basins), each = 3)
-
-  g2 <- ggplot(km2_df, aes(x = time, y = surv,
-                            color = group, linetype = group)) +
-    geom_step(linewidth = 0.7) +
-    labs(x = "Years", y = "Survival probability",
-         color = NULL, linetype = NULL) +
-    theme_minimal(base_size = 13) +
-    theme(legend.position = "right")
-
-  out_path2 <- file.path(out_dir, "km_basin_energy_combined.png")
-  ggsave(out_path2, g2, width = 10, height = 6, dpi = 200)
-  cat(sprintf("  Written: %s\n", out_path2))
+  out_combined <- file.path(out_dir, "km_per_basin.png")
+  png(out_combined, width = 8 * n_col, height = 6 * n_row,
+      units = "in", res = 200, bg = "white")
+  print(g_arr)
+  dev.off()
+  cat(sprintf("  Written: %s\n", out_combined))
 }
 
 cat("Done.\n")

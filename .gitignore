@@ -1,9 +1,12 @@
 data/
 output/
-plot/
+plot/*
 !plot/Figures/
-summary/
-!summary/applicability/*.tsv
+summary/*
+!summary/applicability/
+!summary/transition_asymmetry_summary.tsv
+!summary/jaccard_all_basins.tsv
+!summary/atlas_summary.tsv
 logs/
 benchmarks/
 .snakemake/
@@ -13,4 +16,5 @@ __pycache__/
 Rplots.pdf
 .Rhistory
 .DS_Store
+._*
 .claude/

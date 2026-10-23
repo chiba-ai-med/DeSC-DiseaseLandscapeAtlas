@@ -1,0 +1,7 @@
+Pattern	Basins	Cox_direction	Transition_rate	Asymmetry	n	Diseases
+Homogeneous	1	Predictive	-	-	13	Autoimmune connective tissue, Cirrhosis/fibrosis, Colorectal cancer, COPD, Gout, Interstitial lung disease, Ischemic heart disease, Liver disease, Lung cancer, Metastatic cancer, Obesity, Stomach cancer, Stroke
+Non-predictive	1	Reversed	-	-	4	Breast cancer, Hip fracture, Pancreatic cancer, Tuberculosis
+Progressive	Multi	Predictive	Low (<5%/mo)	High (>0.6)	6	Anemia, Hematologic malignancy, Inflammatory bowel disease, Malignancy, Peptic ulcer, Urinary tract infection
+Convergent	Multi	Predictive	Mid-High (5-11%/mo)	Moderate (0.3-0.6)	16	Aspiration pneumonia, Atrial fibrillation, Benign prostatic hyperplasia, Delirium, Diabetes, Epilepsy, Liver cancer, Malnutrition, Osteoarthritis, Osteoporosis, Pneumonia, Rheumatoid arthritis, Schizophrenia, Sleep disorders, Thyroid disorder, Viral hepatitis
+Symmetric	Multi	Predictive	Mid-High (5-10%/mo)	Low (<0.3)	10	Acute renal failure, Anxiety, Asthma, CKD, Dementia, Depression, Dyslipidemia, Hypertension, Parkinson disease, Prostate cancer
+Structured non-predictive	Multi	Reversed	Any	Any	2	Heart failure, Sepsis
