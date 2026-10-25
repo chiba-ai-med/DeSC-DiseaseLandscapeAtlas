@@ -239,6 +239,11 @@ outcomes in TB.
 - `FigS_atlas_hospitalization.png` — Atlas overview for hospitalization
 - `FigS_jaccard_allblocks.png` — Jaccard clustering with 12 sub-cluster annotations (Fig 4 detail)
 - `FigS_jaccard_basin_level.png` — Basin-level (93×93) Jaccard clustering; same-disease basins split apart
+- `FigS_within_disease_jaccard.png` — Within-disease basin similarity dot plot with between-disease reference
+- `FigS_code_traj_dementia_B{1,2}.png` — ICD-10 code frequency trajectory before death (Dementia, 2 basins)
+- `FigS_code_traj_thyroid_B{1-4}.png` — ICD-10 code frequency trajectory before death (Thyroid, 4 basins)
+- `FigS_code_traj_anemia_B{1,3}.png` — ICD-10 code frequency trajectory before death (Anemia, 2 basins)
+- `FigS_code_traj_tuberculosis_B1.png` — ICD-10 code frequency trajectory before death (TB, 1 basin)
 - `FigS_pattern_space.png` — Transition rate × asymmetry scatter (Table 1 backing)
 - `FigS_death_hosp.png` — Death rate vs hospitalization rate across basins (Fig 7 generalization)
 - `FigS_crossdisease_codes.png` — Top 10 cross-disease basin-discriminating codes (data-driven)
