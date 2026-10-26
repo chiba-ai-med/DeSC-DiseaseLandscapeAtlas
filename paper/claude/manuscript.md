@@ -27,7 +27,7 @@ Comorbidity patterns shape clinical trajectories, yet systematic cross-disease c
 
 Administrative claims databases capture diagnoses, procedures, and prescriptions for millions of individuals over extended periods, providing an increasingly important resource for studying disease at the population level (Schneeweiss and Avorn, 2005). While individual comorbidities and their pairwise associations have been extensively catalogued (Barnett et al., 2012), the higher-order structure of comorbidity — how multiple conditions co-occur, form stable configurations, and evolve over time — has received less attention. Network approaches have begun to map disease–disease relationships at population scale (Hidalgo et al., 2009; Jensen et al., 2014), but methods that identify discrete comorbidity states and their stability remain underexplored. Understanding this structure matters because comorbidity burden is a major driver of healthcare utilization, mortality, and treatment complexity (Salisbury et al., 2011).
 
-Energy landscape analysis (ELA) offers a framework for discovering stable states in high-dimensional binary data. Originally developed in statistical physics to describe spin systems and applied to protein folding (Bryngelson et al., 1995), the approach constructs an energy function over discrete states such that frequently occupied configurations receive low energy. Local minima of this energy surface define "basins of attraction" — groups of states separated by energy barriers. The maximum-entropy (Ising model) formulation, which infers pairwise couplings from observed state frequencies (Schneidman et al., 2006), has been applied to neural population activity (Watanabe et al., 2014; Ezaki et al., 2017), gene expression states (Sasai and Wolynes, 2003), and more recently to clinical comorbidity patterns (Masuda et al., 2025). However, to our knowledge, clinical applications of ELA have so far focused on broad patient populations rather than disease-specific cohorts, which may limit the interpretability of the resulting basins when the goal is to characterize comorbidity structure within a particular disease.
+Energy landscape analysis (ELA) offers a framework for discovering stable states in high-dimensional binary data. Originally developed in statistical physics to describe spin systems and applied to protein folding (Bryngelson et al., 1995), the approach constructs an energy function over discrete states such that frequently occupied configurations receive low energy. Local minima of this energy surface define "basins of attraction" — groups of states separated by energy barriers. The maximum-entropy (Ising model) formulation, which infers pairwise couplings from observed state frequencies (Schneidman et al., 2006), has been applied to neural population activity (Watanabe et al., 2014; Ezaki et al., 2017), gene expression states (Sasai and Wolynes, 2003), and more recently to clinical comorbidity patterns (Masuda et al., 2025).
 
 Here, we present the Disease Landscape Atlas, a systematic application of ELA to 51 disease families defined by ICD-10 code prefixes in the DeSC Japanese claims database. By constructing separate landscapes for each disease family — excluding the index disease codes from the feature set — the resulting basins reflect disease-specific comorbidity patterns rather than population-level prevalence. The cohorts collectively span approximately 11 million individuals observed between April 2014 and July 2021, with patients potentially contributing to multiple disease families. For each family, we construct a binary comorbidity matrix from 6-month observation windows, apply PCA to reduce dimensionality to 7 components, binarize the scores, and estimate the energy landscape using the Ising model.
 
@@ -73,7 +73,7 @@ To organize the diversity of landscape behaviors across the 51 families, we defi
 
 **Homogeneous** (13 families): Single basin, energy associated with mortality in the expected direction. These diseases — including COPD, stroke, ischemic heart disease, and colorectal cancer — have a single stable comorbidity configuration with a clear severity gradient within it.
 
-**Non-directional** (4 families): Single basin, reversed energy–mortality association. Hip fracture, lung cancer, pancreatic cancer, and tuberculosis have a single basin in which lower energy is not associated with worse outcomes.
+**Reversed** (4 families): Single basin, reversed energy–mortality association. Hip fracture, lung cancer, pancreatic cancer, and tuberculosis have a single basin in which lower energy is not associated with worse outcomes.
 
 **Convergent** (15 families): Multiple basins with expected energy–mortality direction, moderate-to-high transition rates (5–11% per step), and moderate transition asymmetry (0.3–0.6). These diseases — including thyroid disorder, diabetes, and epilepsy — exhibit net directional flow between basins.
 
@@ -81,7 +81,7 @@ To organize the diversity of landscape behaviors across the 51 families, we defi
 
 **Progressive** (6 families): Multiple basins with expected energy–mortality direction, low transition rates (<5% per step), and high asymmetry (>0.6). Anemia, malignancy, and hematologic malignancy typify this pattern: inter-basin transitions are infrequent but strongly directional when they occur.
 
-**Structured non-directional** (2 families): Multiple basins, reversed energy–mortality association. Liver cancer and sepsis exhibit structured basin organization but the expected energy–outcome direction does not hold.
+**Structured reversed** (2 families): Multiple basins, reversed energy–mortality association. Liver cancer and sepsis exhibit structured basin organization but the expected energy–outcome direction does not hold.
 
 The thresholds for transition rate and asymmetry summarize observed variation in the data and are not derived from optimization criteria. Some diseases fall near the boundaries (e.g., peptic ulcer has a transition rate of 6.2% but is classified as Progressive; delirium has 4.6% but is classified as Convergent; heart failure has asymmetry 0.32, near the Symmetric/Convergent boundary).
 
@@ -113,7 +113,7 @@ Among deceased patients, the conditional probability of transitioning from Basin
 
 To illustrate how transition dynamics vary across ELA behavioral patterns, Figure 8 compares the step-by-step transition matrices of three representative diseases: dementia (Symmetric, Figure 8a), thyroid disorder (Convergent, Figure 8b), and anemia (Progressive, Figure 8c). In dementia, the two basins exchange patients at near-equal rates (5.7% vs. 5.9%). In thyroid disorder, moderate asymmetry is apparent: Basin 2→1 (8.9%) exceeds Basin 1→2 (1.9%). In anemia, the conditional probability asymmetry is extreme (36:1) but the absolute transition counts are balanced.
 
-### 2.9 Tuberculosis: Non-directional pattern and ELA limitations
+### 2.9 Tuberculosis: Reversed pattern and ELA limitations
 
 Tuberculosis illustrates the limitations of ELA for diseases with low observation density and acute presentation. The TB cohort (n = 424,627) yielded a single basin (Basin 1) with a reversed energy–mortality association (HR = 1.069; 95% CI 1.063–1.074), meaning that lower energy was associated with lower, not higher, mortality (Figure 9).
 
@@ -175,7 +175,13 @@ Energy landscape estimation was performed using Landscaper (https://github.com/c
 
 > h(t) = h₀(t) × exp(β₁ E_z + β₂ age + β₃ sex)
 
-where E_z is the energy value standardized (Z-score) within each basin, age is calculated from birth year-month to coverage start date, and sex is coded as a factor. The outcome is either all-cause mortality or disease-specific hospitalization (first admission where the DPC primary diagnosis matches the index disease family's ICD-10 codes). The case-study hospitalization rates (e.g., dementia Figure 7) use all-cause hospitalization (any admission, regardless of diagnosis) from a separate population-wide hospitalization register. Time to event was calculated from coverage start to coverage end (death or censoring at end of observation).
+where E_z is the energy value standardized (Z-score) within each basin, age is calculated from birth year-month to coverage start date, and sex is coded as a factor. Two endpoints were analyzed separately:
+
+*Mortality.* The time origin is the start of the patient's insurance coverage period. The event is all-cause death (recorded as a death flag in the claims database). Patients alive at the end of their coverage period are censored at that date.
+
+*Disease-specific hospitalization.* The time origin is likewise the start of coverage. The event is first admission where the DPC primary diagnosis matches the index disease family's ICD-10 codes. Patients without a qualifying admission are censored at the end of coverage or at death, whichever occurs first.
+
+The case-study hospitalization rates reported for individual diseases (e.g., dementia Basin 1: 77.6%, Basin 2: 57.2% in Figure 7) use all-cause hospitalization (any admission, regardless of diagnosis) from a separate population-wide hospitalization register, which differs from the disease-specific endpoint used in the per-basin majority criterion.
 
 **Per-basin majority criterion.** A disease family was classified as satisfying the criterion if HR < 1 held in at least half of its basins. This includes ties: for a disease with 2 basins, 1 of 2 suffices; for 4 basins, 2 of 4 suffices.
 
@@ -195,7 +201,7 @@ where c_{bj} is the number of observation windows in basin b containing code j, 
 
 **Trajectory-to-death analysis.** For each deceased patient in each disease family, we tracked the patient's state, energy, and basin assignment across retained observation windows, indexed by ordinal position counting backward from the last retained observation (periods_before_death = 0 at the final retained window). The ordinal positions reflect the sequence of available records, not calendar-time intervals; gaps in coverage or excluded windows are not explicitly represented. Up to 20 positions before death were retained per patient.
 
-**Step-by-step transition matrices.** Using the deceased-patient trajectory data, we computed transition rates between basin assignments at consecutive retained positions. For each pair of consecutive positions (t and t+1 in ordinal sequence), the patient's basin label at each position determined a transition event. Because observation windows slide by 1 month, consecutive retained positions are separated by approximately 1 calendar month; we report transition rates "per step" throughout, which corresponds to this approximate monthly interval. The transition rate from basin i to basin j was defined as the count of i→j transitions divided by the total transitions departing basin i. Transition asymmetry for each basin pair (i, j) was defined as |rate(i→j) − rate(j→i)| / (rate(i→j) + rate(j→i)). For diseases with more than 2 basins, the mean asymmetry across all basin pairs was used. These analyses are restricted to deceased patients; results may differ in the full population.
+**Step-by-step transition matrices.** Using the deceased-patient trajectory data, we computed transition rates between basin assignments at consecutive retained positions. For each pair of consecutive positions (t and t+1 in ordinal sequence), the patient's basin label at each position determined a transition event. Because observation windows are constructed with a 1-month sliding step, we report transition rates "per step" throughout, referring to the interval between consecutive retained observation positions. The calendar-time gap between consecutive retained positions has not been independently verified and may vary across patients; "per step" should not be read as "per calendar month." The transition rate from basin i to basin j was defined as the count of i→j transitions divided by the total transitions departing basin i. Transition asymmetry for each basin pair (i, j) was defined as |rate(i→j) − rate(j→i)| / (rate(i→j) + rate(j→i)). For diseases with more than 2 basins, the mean asymmetry across all basin pairs was used. These analyses are restricted to deceased patients; results may differ in the full population.
 
 **Figure 5 trajectory summaries.** Figure 5a shows the distribution of trajectory categories (Stable Basin, Stable Non-Basin, Moved) as medians across diseases within each basin-count group. Figures 5b and 5c compare the first and last observed basin assignments (endpoint comparison), which permits intermediate changes. These summaries are medians across diseases, not pooled patient-level statistics.
 
@@ -317,7 +323,7 @@ Hierarchical clustering of 50 disease families (schizophrenia excluded) by basin
 
 ### Figure 5. Basin assignments persist among deceased patients, with basin-count-dependent transition rates.
 
-(a) Distribution of deceased patients' trajectory categories by number of basins. Each bar shows the median across diseases in that group. In 1-basin diseases (17 families), a median of 86% remain in the same basin throughout follow-up; in 2+ basin diseases, roughly half undergo state transitions. Stable Non-Basin accounts for less than 2%. (b) Among deceased patients starting in a basin, a median of 97% had the same basin at first and last observation in 1-basin diseases; this drops to approximately 69% in 3–4 basin diseases, where 29–31% move to a different basin. This is an endpoint comparison that permits intermediate departures and returns. (c) Among deceased patients starting outside a basin, a median of 68–75% ended in a basin. n = 24 for the 2-basin group, as 2 of 26 two-basin families had no non-basin-starting deceased patients.
+(a) Distribution of deceased patients' trajectory categories by number of basins. Each bar shows the median across diseases in that group. In 1-basin diseases (17 families), a median of 88% remain in the same basin throughout follow-up; in 2+ basin diseases, roughly half undergo state transitions. Stable Non-Basin accounts for less than 2%. (b) Among deceased patients starting in a basin, a median of 97% had the same basin at first and last observation in 1-basin diseases; this drops to approximately 69% in 3–4 basin diseases, where 29–31% move to a different basin. This is an endpoint comparison that permits intermediate departures and returns. (c) Among deceased patients starting outside a basin, a median of 68–75% ended in a basin. n = 24 for the 2-basin group, as 2 of 26 two-basin families had no non-basin-starting deceased patients.
 
 ### Figure 6. Thyroid disorder energy landscape with clinically interpretable basins (Convergent pattern).
 
@@ -331,7 +337,7 @@ Hierarchical clustering of 50 disease families (schizophrenia excluded) by basin
 
 Step-by-step basin transition matrices among deceased patients for three representative diseases, ordered by increasing asymmetry. (a) Dementia (Symmetric): Basin 1→2 = 5.7%, Basin 2→1 = 5.9%, near-symmetric exchange. (b) Thyroid disorder (Convergent): 4×4 matrix with moderate asymmetry; Basin 2→1 (8.9%) exceeds Basin 1→2 (1.9%). (c) Anemia (Progressive): Basin 3→1 = 17.7% vs. Basin 1→3 = 0.5%, a 36:1 ratio in conditional transition probabilities. The absolute transition counts are comparable (71,040 vs. 70,562) because Basin 1 is much larger than Basin 3.
 
-### Figure 9. Tuberculosis — ELA limitations for low-density single-basin diseases (Non-directional pattern).
+### Figure 9. Tuberculosis — ELA limitations for low-density single-basin diseases (Reversed pattern).
 
 (a) Temporal basin composition among deceased TB patients at successive observation positions. (b) PC sign pattern comparison between the basin state and the top-10 most-frequent non-basin states. PC6 is the sole axis that consistently differs: PC6 = −1 in the basin state vs. PC6 = +1 in all 10 examined non-basin states. This comparison is limited to the selected states. (c) PC6 loading bar chart showing the ICD-10 codes contributing to the discriminating axis. Cox analysis yields HR = 1.069 (95% CI: 1.063–1.074), indicating reversed energy–mortality direction.
 
@@ -346,13 +352,13 @@ Step-by-step basin transition matrices among deceased patients for three represe
 | Pattern | Basins | Cox | Rate | Asym. | n | Diseases |
 |---------|--------|-----|------|-------|---|----------|
 | Homogeneous | 1 | Exp | — | — | 13 | Autoimmune conn. tissue, Breast ca., Cirrhosis, Colorectal ca., COPD, Gout, ILD, IHD, Liver disease, Metastatic ca., Obesity, Stomach ca., Stroke |
-| Non-directional | 1 | Rev | — | — | 4 | Hip fracture, Lung ca., Pancreatic ca., TB |
+| Reversed | 1 | Rev | — | — | 4 | Hip fracture, Lung ca., Pancreatic ca., TB |
 | Progressive | Multi | Exp | <5% | >0.6 | 6 | Anemia, Hem. malignancy, IBD, Malignancy, Peptic ulcer, UTI |
 | Convergent | Multi | Exp | 5–11% | 0.3–0.6 | 15 | Asp. pneumonia, BPH, Delirium, Diabetes, Epilepsy, Heart failure, Malnutrition, OA, Osteoporosis, Pneumonia, RA, Schizophrenia, Sleep disorders, Thyroid, Viral hepatitis |
 | Symmetric | Multi | Exp | 5–10% | <0.3 | 11 | AF, AKI, Anxiety, Asthma, CKD, Dementia, Depression, Dyslipidemia, HTN, Parkinson, Prostate ca. |
-| Str. non-dir. | Multi | Rev | Any | Any | 2 | Liver ca., Sepsis |
+| Str. reversed | Multi | Rev | Any | Any | 2 | Liver ca., Sepsis |
 
-Abbreviations: Exp = Expected direction (HR < 1 in ≥ half of basins; directional consistency, not predictive performance); Rev = Reversed; Rate = inter-basin transition rate per step (≈ per month); Asym. = mean pairwise transition asymmetry; ca. = cancer; conn. = connective; ILD = interstitial lung disease; IHD = ischemic heart disease; Hem. = hematologic; IBD = inflammatory bowel disease; UTI = urinary tract infection; Asp. = aspiration; AF = atrial fibrillation; BPH = benign prostatic hyperplasia; OA = osteoarthritis; RA = rheumatoid arthritis; AKI = acute renal failure; HTN = hypertension; Str. non-dir. = Structured non-directional; TB = tuberculosis. Thresholds summarize observed variation; some diseases fall near the stated boundaries. Single-basin diseases have no transition metrics. This classification is descriptive and was not pre-registered or validated on independent data.
+Abbreviations: Exp = Expected direction (HR < 1 in ≥ half of basins; directional consistency, not predictive performance); Rev = Reversed; Rate = inter-basin transition rate per step; Asym. = mean pairwise transition asymmetry; ca. = cancer; conn. = connective; ILD = interstitial lung disease; IHD = ischemic heart disease; Hem. = hematologic; IBD = inflammatory bowel disease; UTI = urinary tract infection; Asp. = aspiration; AF = atrial fibrillation; BPH = benign prostatic hyperplasia; OA = osteoarthritis; RA = rheumatoid arthritis; AKI = acute renal failure; HTN = hypertension; Str. reversed = Structured reversed; TB = tuberculosis. Thresholds summarize observed variation; some diseases fall near the stated boundaries. Single-basin diseases have no transition metrics. This classification is descriptive and was not pre-registered or validated on independent data.
 
 ```{=openxml}
 <w:p><w:pPr><w:sectPr><w:pgSz w:w="16838" w:h="11906" w:orient="landscape"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="720" w:footer="720" w:gutter="0"/></w:sectPr></w:pPr></w:p>
@@ -390,7 +396,7 @@ Bar chart showing the ICD-10 codes most frequently appearing in basins' top-30 l
 
 Four-panel figure for the diabetes cohort (n = 4,514,492): (a) basin comorbidity profiles, (b) inter-basin Kaplan–Meier curves, (c) disconnectivity graph, (d) temporal basin flow.
 
-### Figure S8. Sepsis — Structured non-directional pattern (supplementary case study).
+### Figure S8. Sepsis — Structured reversed pattern (supplementary case study).
 
 Sepsis cohort (n = 434,910) with 3 basins (Basin 1: 154,734; Basin 2: 233,467; Basin 3: 46,709). Despite structured basin organization, the energy–mortality direction is reversed (HR > 1 in all basins). Panels show: KM survival curves by basin, tag clouds of top comorbidity codes per basin, and trajectory heatmap before death.
 
