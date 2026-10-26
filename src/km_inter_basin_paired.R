@@ -67,7 +67,7 @@ survfit_to_df <- function(fit) {
   )
 }
 
-make_km_plot <- function(fit, df, title, ylab, colors) {
+make_km_plot <- function(fit, df, title, ylab, colors, event_col) {
   sdf <- survfit_to_df(fit)
   sdf[, strata := gsub("Basin=", "", strata)]
 
@@ -95,13 +95,10 @@ make_km_plot <- function(fit, df, title, ylab, colors) {
   n_per_basin <- sapply(basin_labels, function(b) {
     nrow(df[Basin == b])
   })
-  death_per_basin <- sapply(basin_labels, function(b) {
-    sub <- df[Basin == b]
-    if ("event_death" %in% names(sub)) sum(sub$event_death)
-    else if ("event_hosp" %in% names(sub)) sum(sub$event_hosp)
-    else NA
+  event_per_basin <- sapply(basin_labels, function(b) {
+    sum(df[Basin == b][[event_col]])
   })
-  rate_per_basin <- round(death_per_basin / n_per_basin * 100, 1)
+  rate_per_basin <- round(event_per_basin / n_per_basin * 100, 1)
   legend_text <- paste0(basin_labels, " (n=", formatC(n_per_basin, format = "d", big.mark = ","),
                         "; ", rate_per_basin, "%)")
   p <- p + scale_color_manual(values = setNames(colors, basin_labels),
@@ -113,7 +110,7 @@ make_km_plot <- function(fit, df, title, ylab, colors) {
 
 fit_death <- survfit(Surv(time_years, event_death) ~ Basin, data = pt_death)
 g_death <- make_km_plot(fit_death, pt_death, "(a) Mortality",
-                        "Survival probability", basin_colors)
+                        "Survival probability", basin_colors, "event_death")
 
 hosp <- fread(hosp_path)
 hosp[, kojin_id := as.character(kojin_id)]
@@ -139,7 +136,7 @@ pt_hosp[, Basin := factor(sprintf("Basin %d", basin_id))]
 
 fit_hosp <- survfit(Surv(time_hosp, event_hosp) ~ Basin, data = pt_hosp)
 g_hosp <- make_km_plot(fit_hosp, pt_hosp, "(b) Hospitalization",
-                       "Hospitalization-free probability", basin_colors)
+                       "Hospitalization-free probability", basin_colors, "event_hosp")
 
 disease_label <- gsub("_", " ", disease)
 disease_label <- paste0(toupper(substr(disease_label, 1, 1)),
