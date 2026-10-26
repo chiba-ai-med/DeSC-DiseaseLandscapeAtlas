@@ -44,6 +44,7 @@ pt <- pt[is.finite(time_years) & time_years > 0 &
            is.finite(energy) & is.finite(age)]
 
 basins <- sort(unique(pt$basin_id))
+basins <- basins[basins != 0]  # exclude isolated states (basin_id=0)
 n_basins <- length(basins)
 cat(sprintf("  %d basins: %s\n", n_basins, paste(basins, collapse = ", ")))
 
@@ -59,7 +60,8 @@ for (b in basins) {
   if (n_deaths >= 10 && n_sub >= 30) {
     sub[, E_z := scale(energy)[, 1]]
 
-    if (sd(sub$E_z, na.rm = TRUE) < 1e-10) {
+    sd_ez <- sd(sub$E_z, na.rm = TRUE)
+    if (is.na(sd_ez) || sd_ez < 1e-10) {
       cat("    Skipped: no energy variance within basin\n")
       results[[length(results) + 1]] <- data.table(
         disease_family = disease, basin_id = b, outcome = "mortality",

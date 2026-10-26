@@ -27,7 +27,8 @@ cat(sprintf("=== Tag cloud per basin: %s ===\n", disease))
 
 # --- Build row -> basin_id mapping ---
 ls_dir <- file.path(base_dir, "landscaper", "7")
-subgraph <- fread(file.path(ls_dir, "SubGraph.tsv"), header = FALSE)[[1]]
+sbmap <- fread(file.path(ls_dir, "state_basin_map.tsv"))
+subgraph <- sbmap$basin_id  # length 128, indexed by state_id
 
 allstates <- as.matrix(fread(file.path(ls_dir, "Allstates.tsv"), header = FALSE))
 n_patterns <- nrow(allstates)

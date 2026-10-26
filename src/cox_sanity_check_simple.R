@@ -26,13 +26,9 @@ cat(sprintf("=== Cox sanity check: %s dim=%d ===\n", disease, dim_val))
 # --- Load Landscaper output ---
 ls_dir <- file.path(base_dir, "landscaper", dim_val)
 
-subgraph <- fread(file.path(ls_dir, "SubGraph.tsv"), header = FALSE)
-setnames(subgraph, "basin_id")
-subgraph[, pattern_id := .I]
-
-energy <- fread(file.path(ls_dir, "E.tsv"), header = FALSE)
-setnames(energy, "energy")
-energy[, pattern_id := .I]
+sbmap <- fread(file.path(ls_dir, "state_basin_map.tsv"))
+subgraph <- sbmap[, .(pattern_id = state_id, basin_id)]
+energy <- sbmap[, .(pattern_id = state_id, energy)]
 
 basin_tbl <- fread(file.path(ls_dir, "Basin.tsv"), header = FALSE)
 n_basins <- nrow(basin_tbl)

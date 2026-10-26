@@ -29,15 +29,12 @@ scores[, new_row_id := .I]
 n_rows <- nrow(scores)
 cat(sprintf("  %d rows x %d PCs\n", n_rows, ncol(scores) - 1))
 
-# --- Load Landscaper assignment ---
+# --- Load Landscaper assignment via state_basin_map ---
 ls_dir <- file.path(base_dir, "landscaper", "7")
-subgraph <- fread(file.path(ls_dir, "SubGraph.tsv"), header = FALSE)
-setnames(subgraph, "basin_id")
-subgraph[, pattern_id := .I]
-
-energy_dt <- fread(file.path(ls_dir, "E.tsv"), header = FALSE)
-setnames(energy_dt, "energy")
-energy_dt[, pattern_id := .I]
+map_path <- file.path(ls_dir, "state_basin_map.tsv")
+sbmap <- fread(map_path)
+subgraph <- sbmap[, .(pattern_id = state_id, basin_id)]
+energy_dt <- sbmap[, .(pattern_id = state_id, energy)]
 
 # Assign pattern to each row via bit encoding on Scores.mm
 S <- readMM(file.path(base_dir, "pca", "7", "Scores.mm"))
