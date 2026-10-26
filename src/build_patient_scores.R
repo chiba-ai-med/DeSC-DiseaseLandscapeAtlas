@@ -97,7 +97,11 @@ parse_ym <- function(s) {
 }
 pt[, age := parse_ym(observable_start_ym) - parse_ym(birth_ym)]
 pt[, obs_years := parse_ym(observable_end_ym) - parse_ym(observable_start_ym)]
-pt[, death := factor(ifelse(!is.na(shibou_flg_riyouka) & shibou_flg_riyouka == 1, "dead", "alive"))]
+pt[, death := factor(ifelse(
+  !is.na(shibou_flg_riyouka) & shibou_flg_riyouka == 1,
+  ifelse(!is.na(shibou_flg) & shibou_flg == 1, "dead", "alive"),
+  "unknown"
+))]
 pt[, sex := factor(ifelse(sex_code == 1, "male", "female"))]
 pt[, insurer := factor(insurer_shubetsu)]
 pt[, basin := factor(paste0("Basin", basin_id))]

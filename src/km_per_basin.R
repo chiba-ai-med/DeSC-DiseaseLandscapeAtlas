@@ -31,7 +31,7 @@ pt <- fread(scores_path)
 tek <- fread(tekiyo_path,
              select = c("kojin_id", "birth_ym", "sex_code",
                          "observable_start_ym", "observable_end_ym",
-                         "shibou_flg_riyouka"))
+                         "shibou_flg", "shibou_flg_riyouka"))
 tek[, kojin_id := as.character(kojin_id)]
 pt[, kojin_id := as.character(kojin_id)]
 pt <- merge(pt, tek, by = "kojin_id", all.x = TRUE)
@@ -41,7 +41,11 @@ parse_ym <- function(s) {
   as.numeric(substr(s, 1, 4)) + (as.numeric(substr(s, 6, 7)) - 1) / 12
 }
 pt[, time_years := parse_ym(observable_end_ym) - parse_ym(observable_start_ym)]
-pt[, event_death := as.integer(!is.na(shibou_flg_riyouka) & shibou_flg_riyouka == 1)]
+pt[, event_death := as.integer(!is.na(shibou_flg) & shibou_flg == 1)]
+
+cat(sprintf("  Before riyouka filter: %d\n", nrow(pt)))
+pt <- pt[!is.na(shibou_flg_riyouka) & shibou_flg_riyouka == 1]
+cat(sprintf("  After riyouka filter: %d\n", nrow(pt)))
 
 pt <- pt[is.finite(time_years) & time_years > 0 & is.finite(energy)]
 

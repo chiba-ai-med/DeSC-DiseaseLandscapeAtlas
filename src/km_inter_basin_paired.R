@@ -36,7 +36,7 @@ if (n_basins < 2) {
 
 tek <- fread(tek_path,
              select = c("kojin_id", "observable_start_ym", "observable_end_ym",
-                        "shibou_flg_riyouka"))
+                        "shibou_flg", "shibou_flg_riyouka"))
 tek[, kojin_id := as.character(kojin_id)]
 pt <- merge(pt, tek, by = "kojin_id", all.x = TRUE)
 rm(tek)
@@ -45,7 +45,11 @@ parse_ym <- function(s) {
   as.numeric(substr(s, 1, 4)) + (as.numeric(substr(s, 6, 7)) - 1) / 12
 }
 pt[, time_years := parse_ym(observable_end_ym) - parse_ym(observable_start_ym)]
-pt[, event_death := as.integer(!is.na(shibou_flg_riyouka) & shibou_flg_riyouka == 1)]
+pt[, event_death := as.integer(!is.na(shibou_flg) & shibou_flg == 1)]
+
+cat(sprintf("Before riyouka filter: %d patients\n", nrow(pt)))
+pt <- pt[!is.na(shibou_flg_riyouka) & shibou_flg_riyouka == 1]
+cat(sprintf("After riyouka filter: %d patients\n", nrow(pt)))
 
 pt_death <- pt[basin_id > 0 & is.finite(time_years) & time_years > 0]
 pt_death[, Basin := factor(sprintf("Basin %d", basin_id))]

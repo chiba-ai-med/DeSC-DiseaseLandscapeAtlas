@@ -129,8 +129,12 @@ parse_ym <- function(s) {
 dt_person[, start_y := parse_ym(observable_start_ym)]
 dt_person[, end_y := parse_ym(observable_end_ym)]
 dt_person[, time_years := end_y - start_y]
-dt_person[, event_death := as.integer(!is.na(shibou_flg_riyouka) & shibou_flg_riyouka == 1)]
+dt_person[, event_death := as.integer(!is.na(shibou_flg) & shibou_flg == 1)]
 dt_person[, age := start_y - parse_ym(birth_ym)]
+
+cat(sprintf("Before riyouka filter: %d patients\n", nrow(dt_person)))
+dt_person <- dt_person[!is.na(shibou_flg_riyouka) & shibou_flg_riyouka == 1]
+cat(sprintf("After riyouka filter (death data available): %d patients\n", nrow(dt_person)))
 
 dt_person <- dt_person[is.finite(time_years) & time_years > 0 &
                          is.finite(energy) & is.finite(age)]

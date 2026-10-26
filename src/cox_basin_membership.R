@@ -16,7 +16,7 @@ cat("Loading tekiyo ...\n")
 tek <- fread(tekiyo_path,
              select = c("kojin_id", "birth_ym", "sex_code",
                          "observable_start_ym", "observable_end_ym",
-                         "shibou_flg_riyouka"))
+                         "shibou_flg", "shibou_flg_riyouka"))
 tek[, kojin_id := as.character(kojin_id)]
 
 parse_ym <- function(s) {
@@ -25,9 +25,12 @@ parse_ym <- function(s) {
 tek[, start_y := parse_ym(observable_start_ym)]
 tek[, end_y := parse_ym(observable_end_ym)]
 tek[, time_years := end_y - start_y]
-tek[, event_death := as.integer(!is.na(shibou_flg_riyouka) & shibou_flg_riyouka == 1)]
+tek[, event_death := as.integer(!is.na(shibou_flg) & shibou_flg == 1)]
 tek[, age := start_y - parse_ym(birth_ym)]
 tek[, sex_f := factor(sex_code)]
+cat(sprintf("Before riyouka filter: %d\n", nrow(tek)))
+tek <- tek[!is.na(shibou_flg_riyouka) & shibou_flg_riyouka == 1]
+cat(sprintf("After riyouka filter: %d\n", nrow(tek)))
 tek <- tek[is.finite(time_years) & time_years > 0 & is.finite(age)]
 tek <- tek[, .(kojin_id, time_years, event_death, age, sex_f)]
 cat(sprintf("Tekiyo: %d patients\n\n", nrow(tek)))
