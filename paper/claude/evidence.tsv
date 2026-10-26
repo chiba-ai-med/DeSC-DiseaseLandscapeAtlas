@@ -4,7 +4,7 @@ Summary	51 disease families	config/disease_families.tsv	51 data rows	verified
 Summary	7 dimensions, 128 states	config/config.yaml	pca.dim: 7	verified
 Summary	1-4 basins per disease	summary/atlas_summary.tsv	n_basins: 17×1, 26×2, 6×3, 2×4	verified
 Summary	45 of 51 families HR<1 mortality (per-basin majority)	output/*/all_comorbid/cox/7/energy_sanity_check_per_basin.tsv	computed per-basin ≥half HR<1: 45 PASS, 6 FAIL (post SubGraph fix)	verified_computed
-Summary	first and last basin matched median 96%	plot/Figures/Fig05/Fig05b_trajectory_basin_start.tsv	1-basin Same_Basin=96.2; median across 17 diseases	verified
+Summary	first and last basin matched median 97%	plot/Figures/Fig05/Fig05b_trajectory_basin_start.tsv	1-basin Same_Basin=97.0; median across 17 diseases (post-fix)	verified
 Results 2.1	cohort sizes 47,332 (IBD) to 4,514,492 (diabetes)	summary/atlas_summary.tsv	n_patients column	verified
 Results 2.1	cohorts cannot be summed for unique patients	config/disease_families.tsv; SETTING.md	non-exclusive ICD prefixes	author_specified
 Results 2.1	up to 83 windows per patient	SETTING.md	6-month windows, 1-month stride	author_specified
@@ -19,11 +19,12 @@ Results 2.4	50 diseases (schizophrenia excluded)	plot/Figures/README.md	Fig 4 ca
 Results 2.4	top 30 by freq_in, not logitdiff	SETTING.md §6.5	author_specified
 Results 2.4	max Jaccard between basin pairs	SETTING.md §6.5	author_specified
 Results 2.4	average linkage + optimal leaf ordering	SETTING.md §6.5	author_specified
+Results 2.4	3 Acute/Frailty vs 47 Chronic/Lifestyle (post-fix)	summary/jaccard_all_basins.tsv; src/recalc_jaccard_clustering.R	cutree k=2: ARF+asp_pneumonia+sepsis vs rest	verified_computed
 Results 2.5	86.4% Stable_Basin 1-basin overview	plot/Figures/Fig05/Fig05a_trajectory_overview.tsv	1-basin row	verified
-Results 2.5	96.2% first/last match (1-basin, basin start, median)	plot/Figures/Fig05/Fig05b_trajectory_basin_start.tsv	1-basin Same_Basin=96.2	verified
+Results 2.5	97.0% first/last match (1-basin, basin start, median)	plot/Figures/Fig05/Fig05b_trajectory_basin_start.tsv	1-basin Same_Basin=97.0 (post-fix)	verified
 Results 2.5	68% retention in 3-4 basin diseases	plot/Figures/Fig05/Fig05b_trajectory_basin_start.tsv	3-basin:67.3, 4-basin:67.8	verified
 Results 2.5	<2% Stable Non-Basin	plot/Figures/Fig05/Fig05a_trajectory_overview.tsv	all groups 0.2-1.6	verified
-Results 2.5	60-70% absorbed into basin (non-basin start)	plot/Figures/Fig05/Fig05c_trajectory_nonbasin_start.tsv	To_Basin: 59.8, 63.4, 70.3, 67.7	verified
+Results 2.5	68-75% absorbed into basin (non-basin start)	plot/Figures/Fig05/Fig05c_trajectory_nonbasin_start.tsv	To_Basin: 68.1, 74.2, 75.1, 74.8 (post-fix)	verified
 Results 2.5	n=24 for 2-basin non-basin start	plot/Figures/Fig05/Fig05c_trajectory_nonbasin_start.tsv	n_diseases=24	verified
 Results 2.5	deceased patients only	src/trajectory_to_death.R	dead_pts filter, line 31	verified_code
 Results 2.5	medians across diseases, not pooled	Codex evidence; Fig05 detail TSVs	median aggregation	verified_codex_confirmed
@@ -35,18 +36,19 @@ Results 2.6	Basin 2 death rate 50.4%, mean age 74.7	cross_death_hosp_basins.tsv	
 Results 2.6	Basin 4 death rate 30.0%, mean age 61.8	cross_death_hosp_basins.tsv	thyroid basin 4	verified
 Results 2.6	connection energy E=-0.68 (Basin 1-3)	output/thyroid_disorder/.../EnergyBarrier.tsv	matrix [1,3] = -0.6824	verified
 Results 2.6	logitdiff scoring	src/tagcloud_scored.R	lines 84-88	verified_code
-Results 2.7	dementia n=929,951	summary/atlas_summary.tsv	verified	verified
+Results 2.7	dementia n=933,285	output/dementia/.../patient/patient_scores.tsv	unique patients with basin assignment (atlas_summary=929,951 is Cox subset)	verified_computed
 Results 2.7	Basin 1 n=498,636; Basin 2 n=434,649	cross_death_hosp_basins.tsv	dementia basins	verified
 Results 2.7	Basin 1 death 49.3%, Basin 2 death 53.9%	cross_death_hosp_basins.tsv	0.493, 0.539	verified
 Results 2.7	Basin 1 hosp 77.6%, Basin 2 hosp 57.2%	cross_death_hosp_basins.tsv	all-cause admission rates	verified
-Results 2.7	hospitalization proportion = any all-cause admission flag	src/build_patient_scores.R:114	n_admissions > 0 = yes	verified_code
+Results 2.7	hospitalization proportion = any all-cause admission (not disease-specific)	src/build_patient_scores.R:114; config/config.yaml hospitalization_path	data/person_hospitalization.tsv is all-cause	verified_code
+Results 2.3	42/51 hospitalization uses disease-specific endpoint	output/*/all_comorbid/cox/7/energy_sanity_check_per_basin_hosp.tsv	input is person_hospitalization_specific.tsv (DPC primary dx match)	verified_code
 Results 2.7	hospitalization KM = time to first admission	src/km_per_basin_hosp.R:52-55	first_admission_ymd, time_years = adm_y - start_y	verified_code
 Results 2.7	transition rates 5.7% vs 5.9%	output/dementia/.../stepwise_transition.tsv	1→2: 0.0568, 2→1: 0.0593	verified
 Results 2.8	anemia n=2,251,643; 2 basins	summary/atlas_summary.tsv	verified	verified
-Results 2.8	Basin 3→1 rate 22.6%, Basin 1→3 rate 0.5%	output/anemia/.../stepwise_transition.tsv	0.226456 and 0.005353	verified
-Results 2.8	ratio 42:1 (not 45:1)	computed from raw rates	0.226456/0.005353=42.30	verified_computed
-Results 2.8	transition counts 78,584 vs 76,120	output/anemia/.../stepwise_transition.tsv	count column	verified
-Results 2.8	monthly move 1.07%, asymmetry 0.954	summary/transition_asymmetry_summary.tsv	anemia row	verified
+Results 2.8	Basin 3→1 rate 17.7%, Basin 1→3 rate 0.5%	output/anemia/.../stepwise_transition.tsv	post-fix rates	verified
+Results 2.8	ratio 36:1	computed from post-fix rates	17.7/0.5 ≈ 36	verified_computed
+Results 2.8	transition counts 71,040 vs 70,562	output/anemia/.../stepwise_transition.tsv	post-fix count column	verified
+Results 2.8	monthly move 1.0%, asymmetry 0.95	summary/transition_asymmetry_summary.tsv	anemia row (post-fix)	verified
 Results 2.9	TB n=424,627; 1 basin	summary/atlas_summary.tsv	tuberculosis	verified
 Results 2.9	TB HR=1.088 CI 1.082-1.094	output/tuberculosis/.../energy_sanity_check_per_basin.tsv	1.08782, 1.08196, 1.09372	verified
 Results 2.9	TB always_nonbasin 3.3%, stable_in_basin 82.8%	plot/Figures/Supplementary/trajectory_classification.tsv	tuberculosis row	verified

@@ -83,21 +83,34 @@ run_all_remaining.sh (全5Phase) が完了し、以下を更新:
 
 `scratchpad/build_docx.sh` で再生成済み (12MB)。
 
-## 3. 残りの未完了項目
+## 3. 2026-10-26 完了した追加作業
 
-### 3.1 Jaccard clustering
+### 3.1 Jaccard clustering — 再計算完了
+- 修正後のbasin_code_enrichment.tsvから再計算: **3 Acute/Frailty** (acute_renal_failure, aspiration_pneumonia, sepsis) vs **47 Chronic/Lifestyle**
+- 修正前は7 vs 43 → delirium, pneumonia, malnutrition, hip_fractureがChronic/Lifestyle内のfrailty-adjacent サブクラスタに移動
+- Figure 4, Figure S2 再生成済み
+- src/recalc_jaccard_clustering.R を保存
 
-tagcloud完了後のbasin_code_enrichment.tsvから再計算が必要:
-- 2大グループ (7 Acute/Frailty vs 43 Chronic/Lifestyle) の内訳確認
-- サブクラスタの記述の検証
+### 3.2 原稿不整合修正 — 全5件対応済み
+1. Summary 96% → 97% (post-fix Fig05データと一致)
+2. 認知症 n=929,951 → 933,285 (patient_scores.tsv基準、atlas_summaryのCox subset 929,951ではなく)
+3. 入院定義の明確化: per-basin majority (42/51) = disease-specific (DPC主傷病一致)、dementia case study (77.6%/57.2%) = all-cause
+4. "per step ≈ per month" = Methods記述と整合確認済み
+5. Table 1 "Pred=Predictive" → "Exp=Expected direction" に変更（予測性能評価でないことを明示）
+   - Non-predictive → Non-directional, Structured non-predictive → Structured non-directional
 
-### 3.2 Figure S8
+### 3.3 参考文献修正 — 全17件検証済み
+- Ref 3 PMID: 8592565 → 7784423 (Bryngelson 1995)
+- Ref 6 PMID: 19073833 → 19095779 (Iglesias & Díez 2009)
+- Ref 17 著者: Hirose, Wada, Imai等 → Masuda N, Megumi F, Kanai R, Rees G (PMID 25163855確認)
+- Introduction "existing clinical applications" のトーンを軟化
 
-Figure S8の対象figureプレースホルダーが未解決（build_docx.shで空行挿入のみ）。
+### 3.4 Figure S8 (Sepsis) — 構成要素をSupplementaryにコピー済み
+### 3.5 Figure S9 — 入院ヒートマップを追加、凡例にdisease-specific定義を明記
 
 ---
 
-## 3. 原稿で守るべき制約
+## 4. 原稿で守るべき制約
 
 1. **未実施の解析を実施済みと書かない**: 比例ハザード性検定、多重検定補正、競合リスク解析、感度解析は未実施
 2. **DeSC-OnlineXXX-Landscaperの経緯は書かない**: 未公表の先行研究。本文・Discussion・参考文献に再導入不可
