@@ -56,42 +56,44 @@ SubGraph128状態マッピングのバグ修正（`pattern_id := .I` → 実際�
 
 ---
 
-## 2. 未完了・要再検証の項目
+## 2. Claudeが追加で完了した作業 (2026-10-26 16:15)
 
-### 2.1 trajectory依存の数値 (run_all_remaining.sh完了後に要検証)
+### 2.1 trajectory依存の数値 → 全件再検証・更新済み
 
-以下の数値は修正前のtrajectoryデータに基づいており、再計算後に変わる可能性がある:
+run_all_remaining.sh (全5Phase) が完了し、以下を更新:
 
-**Figure 5関連:**
-- 96.2% 1-basin疾患のfirst-to-last match
-- 68% 3-4 basin疾患のmatch
-- 31% 異Basin移動
-- 1-4% Basin外への退出
-- 60-70% Basin収束率 (非Basin開始)
-- 2%未満 stable non-basin
+**Figure 5関連 (更新済み):**
+- 96.2% → 97% (1-basin first-to-last match)
+- 68%/31% → 69%/29-31% (3-4 basin)
+- 1-4% → 0.4-3% (Basin外退出)
+- 60-70% → 68-75% (非Basin→Basin収束率)
 
-**Table 1 分類:**
-- heart_failureの分類 (現在 "Symmetric" だが rate=8.66%, asymmetry=0.268 → 閾値付近)
-- 全疾患の分類カウント (Absorbing/Directional/Symmetric/Single-basin)
+**Table 1 分類 (更新済み):**
+- heart_failure: asymmetry 0.268→0.318 (>0.3) → Symmetric→Convergentに移動
+- atrial_fibrillation: asymmetry 0.279 (<0.3) → Convergent→Symmetricに移動
+- カテゴリ合計数は変わらず (Convergent 15, Symmetric 11)
 
-**個別疾患の遷移率:**
-- 貧血: 22.6%/0.5% (42:1比)、78,584/76,120イベント
-- 甲状腺: 10.2%/2.3%
-- 認知症: 5.7%/5.9%
+**個別疾患の遷移率 (更新済み):**
+- 貧血: 22.6%→17.7%, 42:1→36:1, 78,584→71,040, 76,120→70,562
+- 甲状腺: 10.2%→8.9%, 2.3%→1.9%
+- 認知症: 5.7%/5.9% → 変更なし (5.68%/5.93%)
+- peptic ulcer境界note: 6.6%→6.2%
 
-### 2.2 Jaccard clustering
+### 2.2 docx再ビルド → 完了
 
-tagcloud完了後、basin_code_enrichment.tsvから再計算が必要:
-- 2大グループ (7 Acute/Frailty vs 43 Chronic/Lifestyle) の内訳
-- サブクラスタの記述
+`scratchpad/build_docx.sh` で再生成済み (12MB)。
 
-### 2.3 Figure S8
+## 3. 残りの未完了項目
+
+### 3.1 Jaccard clustering
+
+tagcloud完了後のbasin_code_enrichment.tsvから再計算が必要:
+- 2大グループ (7 Acute/Frailty vs 43 Chronic/Lifestyle) の内訳確認
+- サブクラスタの記述の検証
+
+### 3.2 Figure S8
 
 Figure S8の対象figureプレースホルダーが未解決（build_docx.shで空行挿入のみ）。
-
-### 2.4 docx再ビルド
-
-全計算完了・数値更新後に `scratchpad/build_docx.sh` で再生成が必要。
 
 ---
 
