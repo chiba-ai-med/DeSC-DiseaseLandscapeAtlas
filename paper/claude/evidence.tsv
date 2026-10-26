@@ -1,0 +1,89 @@
+section	claim	source_path	source_location	verification_status
+Summary	approximately 11 million individuals	paper/SETTING.md	§4 and §6.1	author_specified
+Summary	51 disease families	config/disease_families.tsv	51 data rows	verified
+Summary	7 dimensions, 128 states	config/config.yaml	pca.dim: 7	verified
+Summary	1-4 basins per disease	summary/atlas_summary.tsv	n_basins: 17×1, 26×2, 6×3, 2×4	verified
+Summary	45 of 51 families HR<1 mortality (per-basin majority)	output/*/all_comorbid/cox/7/energy_sanity_check_per_basin.tsv	computed per-basin ≥half HR<1: 45 PASS, 6 FAIL (post SubGraph fix)	verified_computed
+Summary	first and last basin matched median 96%	plot/Figures/Fig05/Fig05b_trajectory_basin_start.tsv	1-basin Same_Basin=96.2; median across 17 diseases	verified
+Results 2.1	cohort sizes 47,332 (IBD) to 4,514,492 (diabetes)	summary/atlas_summary.tsv	n_patients column	verified
+Results 2.1	cohorts cannot be summed for unique patients	config/disease_families.tsv; SETTING.md	non-exclusive ICD prefixes	author_specified
+Results 2.1	up to 83 windows per patient	SETTING.md	6-month windows, 1-month stride	author_specified
+Results 2.1	index disease codes excluded	src/build_cohort_matrix.jl	lines 68-74	verified_code
+Results 2.2	median |r|=0.41 PC1-age	summary/pc_age_sex_energy_correlations.tsv	median of |cor_age| for PC1, 51 diseases excl hf_cancer = 0.407	verified_computed
+Results 2.2	UTI PC7-sex |r|=0.45	summary/pc_age_sex_energy_correlations.tsv	UTI PC7 cor_sex = 0.4477	verified
+Results 2.2	median 12.5% cumulative variance	plot/Figures/Fig02/Fig02c_cumulative_variance.png	displayed value; eigenvalue calc gives 13.3% - see AQ	verified_displayed_value
+Results 2.3	45/51 mortality per-basin majority	per-basin Cox files for all 51 diseases	computed post SubGraph fix: ≥half basins HR<1 including ties	verified_computed
+Results 2.3	6 FAIL diseases listed	per-basin Cox files	hip_fracture(0/1), liver_cancer(0/3), lung_cancer(0/1), pancreatic_cancer(0/1), sepsis(0/3), TB(0/1)	verified_computed
+Results 2.3	42/51 hospitalization per-basin majority	per-basin hosp Cox files	computed post SubGraph fix	verified_computed
+Results 2.4	50 diseases (schizophrenia excluded)	plot/Figures/README.md	Fig 4 caption	verified
+Results 2.4	top 30 by freq_in, not logitdiff	SETTING.md §6.5	author_specified
+Results 2.4	max Jaccard between basin pairs	SETTING.md §6.5	author_specified
+Results 2.4	average linkage + optimal leaf ordering	SETTING.md §6.5	author_specified
+Results 2.5	86.4% Stable_Basin 1-basin overview	plot/Figures/Fig05/Fig05a_trajectory_overview.tsv	1-basin row	verified
+Results 2.5	96.2% first/last match (1-basin, basin start, median)	plot/Figures/Fig05/Fig05b_trajectory_basin_start.tsv	1-basin Same_Basin=96.2	verified
+Results 2.5	68% retention in 3-4 basin diseases	plot/Figures/Fig05/Fig05b_trajectory_basin_start.tsv	3-basin:67.3, 4-basin:67.8	verified
+Results 2.5	<2% Stable Non-Basin	plot/Figures/Fig05/Fig05a_trajectory_overview.tsv	all groups 0.2-1.6	verified
+Results 2.5	60-70% absorbed into basin (non-basin start)	plot/Figures/Fig05/Fig05c_trajectory_nonbasin_start.tsv	To_Basin: 59.8, 63.4, 70.3, 67.7	verified
+Results 2.5	n=24 for 2-basin non-basin start	plot/Figures/Fig05/Fig05c_trajectory_nonbasin_start.tsv	n_diseases=24	verified
+Results 2.5	deceased patients only	src/trajectory_to_death.R	dead_pts filter, line 31	verified_code
+Results 2.5	medians across diseases, not pooled	Codex evidence; Fig05 detail TSVs	median aggregation	verified_codex_confirmed
+Results 2.6	thyroid n=2,026,922	summary/atlas_summary.tsv	thyroid_disorder	verified
+Results 2.6	ICD E00-E07 all thyroid disorders	config/disease_families.tsv	thyroid_disorder row	verified
+Results 2.6	Basin 3 n=982,324	output/thyroid_disorder/.../energy_sanity_check_per_basin.tsv	Basin 3	verified
+Results 2.6	Basin 4 n=139,993	README.md; cross_death_hosp_basins 139,844	README vs per-basin Cox differ by ~150	noted_discrepancy
+Results 2.6	Basin 2 death rate 50.4%, mean age 74.7	cross_death_hosp_basins.tsv	thyroid basin 2	verified
+Results 2.6	Basin 4 death rate 30.0%, mean age 61.8	cross_death_hosp_basins.tsv	thyroid basin 4	verified
+Results 2.6	connection energy E=-0.68 (Basin 1-3)	output/thyroid_disorder/.../EnergyBarrier.tsv	matrix [1,3] = -0.6824	verified
+Results 2.6	logitdiff scoring	src/tagcloud_scored.R	lines 84-88	verified_code
+Results 2.7	dementia n=929,951	summary/atlas_summary.tsv	verified	verified
+Results 2.7	Basin 1 n=498,636; Basin 2 n=434,649	cross_death_hosp_basins.tsv	dementia basins	verified
+Results 2.7	Basin 1 death 49.3%, Basin 2 death 53.9%	cross_death_hosp_basins.tsv	0.493, 0.539	verified
+Results 2.7	Basin 1 hosp 77.6%, Basin 2 hosp 57.2%	cross_death_hosp_basins.tsv	all-cause admission rates	verified
+Results 2.7	hospitalization proportion = any all-cause admission flag	src/build_patient_scores.R:114	n_admissions > 0 = yes	verified_code
+Results 2.7	hospitalization KM = time to first admission	src/km_per_basin_hosp.R:52-55	first_admission_ymd, time_years = adm_y - start_y	verified_code
+Results 2.7	transition rates 5.7% vs 5.9%	output/dementia/.../stepwise_transition.tsv	1→2: 0.0568, 2→1: 0.0593	verified
+Results 2.8	anemia n=2,251,643; 2 basins	summary/atlas_summary.tsv	verified	verified
+Results 2.8	Basin 3→1 rate 22.6%, Basin 1→3 rate 0.5%	output/anemia/.../stepwise_transition.tsv	0.226456 and 0.005353	verified
+Results 2.8	ratio 42:1 (not 45:1)	computed from raw rates	0.226456/0.005353=42.30	verified_computed
+Results 2.8	transition counts 78,584 vs 76,120	output/anemia/.../stepwise_transition.tsv	count column	verified
+Results 2.8	monthly move 1.07%, asymmetry 0.954	summary/transition_asymmetry_summary.tsv	anemia row	verified
+Results 2.9	TB n=424,627; 1 basin	summary/atlas_summary.tsv	tuberculosis	verified
+Results 2.9	TB HR=1.088 CI 1.082-1.094	output/tuberculosis/.../energy_sanity_check_per_basin.tsv	1.08782, 1.08196, 1.09372	verified
+Results 2.9	TB always_nonbasin 3.3%, stable_in_basin 82.8%	plot/Figures/Supplementary/trajectory_classification.tsv	tuberculosis row	verified
+Results 2.9	PC sign table 11 states verified	Codex evidence row 170	77 signs all match Allstates	verified_codex
+Table 1	6 patterns sum to 51	Table1_pattern_classification.tsv	13+4+6+16+10+2=51	verified
+Table 1	liver_cancer and UTI in Predictive but FAIL majority	per-basin Cox vs Table1	liver_cancer 1/3 PASS, UTI 1/3 PASS	verified_discrepancy
+Table 1	boundary cases: peptic_ulcer 6.6%, delirium 4.6%, AF asym 0.300, AKI 10.3%	transition_asymmetry_summary.tsv	near boundary values	verified_noted
+Methods	observation period April 2014-July 2021	SETTING.md §6.1	author_specified	author_specified
+Methods	binarization: >0 → 1, ≤0 → 0	src/prepare_landscaper_input.jl	lines 28-36	verified_code
+Methods	patient dedup: max old_row_id	src/build_patient_scores.R	line 80	verified_code
+Methods	Cox: Surv(time, event) ~ E_z + age + sex	src/cox_per_basin.R	lines 73-74	verified_code
+Methods	E_z = scale(energy) within basin	src/cox_per_basin.R	line 60	verified_code
+Methods	per-basin majority: ≥half HR<1 including ties	SETTING.md §6.3	author_specified	author_specified
+Methods	logitdiff formula with α=1	src/tagcloud_scored.R	lines 84-88	verified_code
+Methods	freq_in denominator = observation windows	src/tagcloud_per_basin.R	n_per_basin	verified_code
+Methods	trajectory/transition: deceased patients only	src/trajectory_to_death.R; stepwise_transition_rate.sh	dead_pts; trajectories_dead.tsv input	verified_code
+Methods	periods_before_death = ordinal position	src/trajectory_to_death.R	n_periods - period_idx	verified_code
+Methods	SubGraph.tsv <128 rows in 47/51 diseases	paper/claude/validation/subgraph_reconciliation.tsv	all 51 diseases verified via StatusNetwork analysis	verified_confirmed
+Methods	SubGraph uses SKIP format (non-isolated states in order)	paper/claude/validation/verify_subgraph_v2.py	thyroid: SG row 55 = state 56 label, confirmed via patient_scores	verified_confirmed
+Methods	SubGraph state-ID mapping bug found and FIXED	src/build_state_basin_map.R + all downstream scripts	state_basin_map.tsv created for all 51 diseases; 47/51 affected, 10M patients changed basin; per-basin mortality 43→45 PASS, hosp 40→42 PASS	fixed_verified
+Methods	30 multi-basin diseases had wrong basin assignments (now corrected)	paper/claude/validation/subgraph_reconciliation.tsv	1.5-61% of obs were misassigned; all regenerated via state_basin_map.tsv	fixed_verified
+Methods	4 diseases unaffected (full 128-row SubGraph)	paper/claude/validation/subgraph_reconciliation.tsv	dementia, delirium, diabetes, sepsis	verified_confirmed
+Refs	Babitt & Lin 2012 JASN	PubMed PMID:22935483	DOI verified	verified_pub
+Refs	Barnett et al. 2012 Lancet	PubMed PMID:22579043	DOI verified	verified_pub
+Refs	Bryngelson et al. 1995 Proteins	PubMed PMID:8592565	DOI verified	verified_pub
+Refs	Hidalgo et al. 2009 PLoS Comput Biol	PubMed PMID:19360091	DOI verified	verified_pub
+Refs	Iglesias & Díez 2009 EJE	PubMed PMID:19073833	DOI verified	verified_pub
+Refs	Jensen et al. 2014 Nat Commun	PubMed PMID:24959948	DOI verified	verified_pub
+Refs	Masuda et al. 2025 PLOS Complex Syst	web search	DOI verified	verified_pub
+Refs	Mölder et al. 2021 F1000Research	web search	DOI verified	verified_pub
+Refs	O'Malley et al. 2005 Health Serv Res	PubMed PMID:16178999	DOI verified	verified_pub
+Refs	Salisbury et al. 2011 BJGP	web search	DOI verified	verified_pub
+Refs	Sasai & Wolynes 2003 PNAS	web search	DOI verified	verified_pub
+Refs	Schneeweiss & Avorn 2005 J Clin Epidemiol	PubMed PMID:15862718	DOI verified	verified_pub
+Refs	Schneidman et al. 2006 Nature	PubMed PMID:16625187	DOI verified	verified_pub
+Refs	Watanabe et al. 2014 Nat Commun	PubMed PMID:25163855	DOI verified	verified_pub
+Methods	eigenvalue-based cumvar median 13.3%	output/*/all_comorbid/ooc_cov/eigenvalues.csv	Σ(top7)/Σ(all), 51 diseases	verified_computed
+Methods	Figure 2c 12.5% = patient-representative variance	plot/Figures/Fig02/Fig02c_cumulative_variance.png	dedup via which.max(old_row_id)	verified_displayed
+Methods	hosp KM uses time-to-first-admission	src/km_per_basin_hosp.R:52-55	first_admission_ymd, has_adm, time_years	verified_code
+Methods	dementia unaffected by SubGraph bug (full_128)	paper/claude/validation/subgraph_reconciliation.tsv	dementia n_isolated=2, n_subgraph=128	verified_confirmed
