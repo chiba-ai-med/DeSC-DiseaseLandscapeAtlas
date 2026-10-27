@@ -40,15 +40,16 @@ for (i in seq_len(nrow(sm))) {
   fid <- sm$disease_family[i]
   stats <- sprintf("output/%s/all_comorbid/cohort/matrix_stats.tsv", fid)
   pt_path <- sprintf("output/%s/all_comorbid/patient/patient_scores.tsv", fid)
-  if (file.exists(stats)) {
-    st <- fread(stats, header = FALSE, sep = "\t")
-    n_rows <- as.numeric(st[V1 == "n_patients", V2])
-    n_pat <- sm$n_patients[i]
-    if (n_pat > 0) sm$rows_per_patient[i] <- n_rows / n_pat
-  }
   if (file.exists(pt_path)) {
     pt <- fread(pt_path, select = c("death"))
-    sm$death_rate[i] <- mean(pt$death == "dead", na.rm = TRUE)
+    n_pat_all <- nrow(pt)
+    pt_known <- pt[death != "unknown"]
+    sm$death_rate[i] <- if (nrow(pt_known) > 0) mean(pt_known$death == "dead") else NA_real_
+    if (file.exists(stats)) {
+      st <- fread(stats, header = FALSE, sep = "\t")
+      n_obs_rows <- as.numeric(st[V1 == "n_patients", V2])
+      if (n_pat_all > 0) sm$rows_per_patient[i] <- n_obs_rows / n_pat_all
+    }
   }
 }
 meta <- sm[, .(disease = disease_family, rows_per_patient, death_rate)]

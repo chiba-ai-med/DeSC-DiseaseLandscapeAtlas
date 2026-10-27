@@ -1,0 +1,35 @@
+disease	n_basins	mean_asymmetry	majority_ok	pattern
+epilepsy	2	0.306548693150053	TRUE	Convergent
+viral_hepatitis	2	0.362846779174847	TRUE	Convergent
+atrial_fibrillation	2	0.42963623268203	TRUE	Convergent
+schizophrenia	2	0.446028026874537	TRUE	Convergent
+dementia	2	0.448878898775986	TRUE	Convergent
+pneumonia	2	0.463857989462223	TRUE	Convergent
+delirium	2	0.480232141732797	TRUE	Convergent
+parkinson	3	0.499229084789479	TRUE	Convergent
+sleep_disorders	2	0.584204273794293	TRUE	Convergent
+heart_failure	2	0.590875254666347	TRUE	Convergent
+inflammatory_bowel_disease	2	0.606299620278987	TRUE	Progressive
+osteoporosis	2	0.607313927158541	TRUE	Progressive
+diabetes	4	0.630379244863412	TRUE	Progressive
+osteoarthritis	2	0.656446152715632	TRUE	Progressive
+aspiration_pneumonia	2	0.731929014957476	TRUE	Progressive
+asthma	2	0.739649971589962	TRUE	Progressive
+peptic_ulcer	3	0.740116098545309	TRUE	Progressive
+hematologic_malignancy	2	0.840987174413971	TRUE	Progressive
+malignancy	2	0.889488104002787	TRUE	Progressive
+anemia	2	0.981761842297267	TRUE	Progressive
+dyslipidemia	2	0.153396279733751	FALSE	Structured reversed
+anxiety	2	0.199853510729302	FALSE	Structured reversed
+sepsis	3	0.407145716185548	FALSE	Structured reversed
+rheumatoid_arthritis	2	0.422724729432784	FALSE	Structured reversed
+thyroid_disorder	4	0.543075982631626	FALSE	Structured reversed
+liver_cancer	3	0.544277016145724	FALSE	Structured reversed
+benign_prostatic_hyperplasia	3	0.572126930857584	FALSE	Structured reversed
+urinary_tract_infection	3	0.844375255374868	FALSE	Structured reversed
+depression	2	0.0270392397333355	TRUE	Symmetric
+acute_renal_failure	2	0.0553034018240476	TRUE	Symmetric
+ckd	2	0.13434502249243	TRUE	Symmetric
+prostate_cancer	2	0.167310086608975	TRUE	Symmetric
+malnutrition	2	0.188259177780921	TRUE	Symmetric
+hypertension	2	0.293369115695589	TRUE	Symmetric
