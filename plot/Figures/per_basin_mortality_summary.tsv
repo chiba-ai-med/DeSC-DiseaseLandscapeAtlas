@@ -1,4 +1,4 @@
-disease	basin_id	HR	HR_lower	HR_upper	pvalue	direction_ok	n_patients	n_deaths	death_rate
+disease	basin_id	outcome	HR	HR_lower	HR_upper	pvalue	direction_ok	n_patients	n_deaths	death_rate	note
 dementia	1	mortality	0.779615495550355	0.774533998012617	0.784730331349929	0	TRUE	243941	94475	0.387286270040707	""
 dementia	2	mortality	1.0641418310538	1.05167426186468	1.07675720292968	4.69139454005048e-25	FALSE	233494	30766	0.131763557093544	""
 diabetes	1	mortality	0.745216796856756	0.739914582671694	0.750557006610391	0	TRUE	747817	83434	0.111570076636396	""

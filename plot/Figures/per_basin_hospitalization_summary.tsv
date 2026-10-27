@@ -1,4 +1,4 @@
-disease	basin_id	HR	HR_lower	HR_upper	pvalue	direction_ok	n_patients	n_events	event_rate
+disease	basin_id	outcome	HR	HR_lower	HR_upper	pvalue	direction_ok	n_patients	n_events	event_rate	note
 dementia	1	hospitalization	0.688260510646414	0.681106324134722	0.695489843112314	0	TRUE	496072	36711	0.0740033704784789	""
 dementia	2	hospitalization	1.01452855693407	0.996473496120289	1.03291075662537	0.115402140045916	FALSE	433782	12253	0.0282469074327658	""
 diabetes	1	hospitalization	0.847134351669375	0.839204514318085	0.855139119885961	6.53562245895711e-262	TRUE	1920850	44231	0.0230267850170497	""
