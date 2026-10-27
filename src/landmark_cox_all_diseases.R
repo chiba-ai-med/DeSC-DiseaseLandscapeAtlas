@@ -218,17 +218,23 @@ for (di in seq_along(disease_list)) {
     landmark[, admission_ym := NA_character_]
   }
 
-  # Hospitalization event: admission after window_end
+  n_all <- nrow(landmark)
+
+  # Hospitalization: mark exclusion and compute event/follow-up on full table
+  landmark[, hosp_excluded := (!is.na(admission_ym) & admission_ym <= window_end)]
+  n_pre_lm_hosp <- sum(landmark$hosp_excluded)
+
   landmark[, event_hosp := fifelse(
-    !is.na(admission_ym) & admission_ym > window_end, 1L, 0L)]
-  # Hospitalization follow-up: to admission if post-landmark, else to obs_end
+    !hosp_excluded &
+    !is.na(admission_ym) &
+    admission_ym > window_end &
+    admission_ym <= observable_end_ym &
+    admission_ym <= DATA_END,
+    1L, 0L)]
   landmark[, fu_hosp := fifelse(
     event_hosp == 1L,
     parse_ym(admission_ym) - parse_ym(window_end),
     fu_time)]
-  landmark[fu_hosp <= 0, `:=`(event_hosp = 0L, fu_hosp = fu_time)]
-
-  n_all <- nrow(landmark)
 
   # --- Save landmark cohort table ---
   cohort_dir <- file.path(base_dir, "landmark")
@@ -237,9 +243,11 @@ for (di in seq_along(disease_list)) {
     kojin_id, window_start, window_end, basin_id, energy,
     birth_ym, sex_code, observable_start_ym, observable_end_ym,
     shibou_flg_riyouka, event_death, fu_time,
-    admission_ym, event_hosp, fu_hosp, age_at_lm)]
+    admission_ym, hosp_excluded, event_hosp, fu_hosp, age_at_lm)]
   fwrite(cohort_out, file.path(cohort_dir, "landmark_cohort.tsv"), sep = "\t")
   rm(cohort_out)
+  cat(sprintf("  Pre-landmark hosp exclusion: %d/%d patients\n",
+              n_pre_lm_hosp, n_all))
 
   # ==========================================================
   # MORTALITY COX (riyouka=1 subset)
@@ -322,28 +330,31 @@ for (di in seq_along(disease_list)) {
   rm(mort_pop)
 
   # ==========================================================
-  # HOSPITALIZATION COX (all eligible patients)
+  # HOSPITALIZATION COX (excluding pre-landmark admissions)
   # ==========================================================
-  n_hosp_events <- sum(landmark$event_hosp)
+  hosp_pop <- landmark[hosp_excluded == FALSE]
+  n_hosp_pop <- nrow(hosp_pop)
+  n_hosp_events <- sum(hosp_pop$event_hosp)
 
-  if (n_all < 100 || n_hosp_events < 20) {
-    cat(sprintf("  Hosp SKIP: N=%d, events=%d\n", n_all, n_hosp_events))
+  if (n_hosp_pop < 100 || n_hosp_events < 20) {
+    cat(sprintf("  Hosp SKIP: N=%d (excl %d), events=%d\n",
+                n_hosp_pop, n_pre_lm_hosp, n_hosp_events))
     overall_hosp[[disease]] <- data.table(
       disease = disease, HR = NA_real_, HR_lo = NA_real_, HR_hi = NA_real_,
-      pval = NA_real_, N = n_all, events = n_hosp_events,
-      censored = n_all - n_hosp_events, direction = "SKIP")
+      pval = NA_real_, N = n_hosp_pop, events = n_hosp_events,
+      censored = n_hosp_pop - n_hosp_events, direction = "SKIP")
   } else {
-    landmark[, E_z_h := scale(energy)[,1]]
+    hosp_pop[, E_z_h := scale(energy)[,1]]
     fit_h <- tryCatch(
       coxph(Surv(fu_hosp, event_hosp) ~ E_z_h + age_at_lm + factor(sex_code),
-            data = landmark),
+            data = hosp_pop),
       error = function(e) NULL)
 
     if (is.null(fit_h)) {
       overall_hosp[[disease]] <- data.table(
         disease = disease, HR = NA_real_, HR_lo = NA_real_, HR_hi = NA_real_,
-        pval = NA_real_, N = n_all, events = n_hosp_events,
-        censored = n_all - n_hosp_events, direction = "ERROR")
+        pval = NA_real_, N = n_hosp_pop, events = n_hosp_events,
+        censored = n_hosp_pop - n_hosp_events, direction = "ERROR")
     } else {
       s_h <- summary(fit_h)
       hr_h <- s_h$conf.int["E_z_h",]
@@ -352,15 +363,15 @@ for (di in seq_along(disease_list)) {
 
       overall_hosp[[disease]] <- data.table(
         disease = disease, HR = hr_h[1], HR_lo = hr_h[3], HR_hi = hr_h[4],
-        pval = pv_h, N = n_all, events = n_hosp_events,
-        censored = n_all - n_hosp_events, direction = dir_h)
+        pval = pv_h, N = n_hosp_pop, events = n_hosp_events,
+        censored = n_hosp_pop - n_hosp_events, direction = dir_h)
 
-      cat(sprintf("  Hosp: N=%d, events=%d, HR=%.4f → %s\n",
-                  n_all, n_hosp_events, hr_h[1], dir_h))
+      cat(sprintf("  Hosp: N=%d (excl %d), events=%d, HR=%.4f → %s\n",
+                  n_hosp_pop, n_pre_lm_hosp, n_hosp_events, hr_h[1], dir_h))
 
       # Per-basin hospitalization Cox
-      for (b in sort(unique(landmark$basin_id))) {
-        sub <- landmark[basin_id == b]
+      for (b in sort(unique(hosp_pop$basin_id))) {
+        sub <- hosp_pop[basin_id == b]
         ev_b <- sum(sub$event_hosp)
         if (ev_b < 10) {
           basin_hosp[[paste0(disease,"_",b)]] <- data.table(
@@ -394,6 +405,7 @@ for (di in seq_along(disease_list)) {
       }
     }
   }
+  rm(hosp_pop)
 
   # ==========================================================
   # KM CURVES (case study diseases only)

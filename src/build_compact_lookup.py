@@ -74,10 +74,14 @@ assert actual_size == expected_size, f"Size mismatch: {actual_size} != {expected
 with open(inpath) as f, open(outpath, 'rb') as binf:
     for i, line in enumerate(f):
         if i >= 10 and i < n - 10:
-            binf.seek(i * 4)
             continue
         parts = line.rstrip('\n').split('\t')
+        binf.seek(i * 4)
         buf = struct.unpack('<HH', binf.read(4))
+        expected_row_id = i + 1
+        actual_row_id = int(parts[0])
+        assert actual_row_id == expected_row_id, \
+            f"Line {i}: old_row_id={actual_row_id}, expected {expected_row_id}"
         if len(parts) < 2:
             assert buf == (0, 0), f"Row {i+1}: expected (0,0), got {buf}"
         else:
@@ -86,8 +90,6 @@ with open(inpath) as f, open(outpath, 'rb') as binf:
             es = encode_ym(window[:sep])
             ee = encode_ym(window[sep+2:])
             assert buf == (es, ee), f"Row {i+1}: expected ({es},{ee}), got {buf}"
-    # Verify old_row_id alignment: line N (0-indexed) = old_row_id N+1
-    # The TSV has no header; line 0 = old_row_id 1
-    print(f"Verified first 10 and last 10 rows match source")
+    print(f"Verified first 10 and last 10 rows (old_row_id alignment + values)")
 
 print("All verification passed")
