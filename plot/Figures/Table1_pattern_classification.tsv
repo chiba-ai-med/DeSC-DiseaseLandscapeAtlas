@@ -1,7 +1,7 @@
-Pattern	Basins	Cox_direction	Transition_rate	Asymmetry	n	Diseases
-Homogeneous	1	Predictive	-	-	14	Breast cancer, Cirrhosis/fibrosis, Colorectal cancer, Gout, Hip fracture, Interstitial lung disease, Ischemic heart disease, Liver disease, Lung cancer, Metastatic cancer, Obesity, Pancreatic cancer, Stomach cancer, Stroke
-Reversed	1	Reversed	-	-	3	Autoimmune connective tissue, COPD, Tuberculosis
-Symmetric	Multi	Predictive	5-8%/step	Low (<0.3)	7	Acute renal failure, CKD, Dementia, Depression, Epilepsy, Hypertension, Prostate cancer
-Convergent	Multi	Predictive	5-11%/step	Moderate (0.3-0.6)	11	Aspiration pneumonia, Atrial fibrillation, Delirium, Heart failure, Inflammatory bowel disease, Malnutrition, Parkinson disease, Pneumonia, Schizophrenia, Sleep disorders, Viral hepatitis
-Progressive	Multi	Predictive	0.5-8%/step	High (>0.6)	8	Anemia, Asthma, Diabetes, Hematologic malignancy, Malignancy, Osteoarthritis, Osteoporosis, Peptic ulcer
-Structured reversed	Multi	Reversed	6-12%/step	Various	8	Anxiety, Benign prostatic hyperplasia, Dyslipidemia, Liver cancer, Rheumatoid arthritis, Sepsis, Thyroid disorder, Urinary tract infection
+Pattern	Basins	Cox_direction	Asymmetry	n	Diseases
+Homogeneous	1	Expected	-	14	Breast cancer, Cirrhosis/fibrosis, Colorectal cancer, Gout, Hip fracture, Interstitial lung disease, Ischemic heart disease, Liver disease, Lung cancer, Metastatic cancer, Obesity, Pancreatic cancer, Stomach cancer, Stroke
+Reversed	1	Reversed	-	3	Autoimmune connective tissue, COPD, Tuberculosis
+Symmetric	Multi	Expected	Low (<0.3)	6	Acute renal failure, CKD, Depression, Hypertension, Malnutrition, Prostate cancer
+Convergent	Multi	Expected	Moderate (0.3-0.6)	10	Atrial fibrillation, Delirium, Dementia, Epilepsy, Heart failure, Parkinson disease, Pneumonia, Schizophrenia, Sleep disorders, Viral hepatitis
+Progressive	Multi	Expected	High (>0.6)	10	Anemia, Aspiration pneumonia, Asthma, Diabetes, Hematologic malignancy, Inflammatory bowel disease, Malignancy, Osteoarthritis, Osteoporosis, Peptic ulcer
+Structured reversed	Multi	Reversed	Various	8	Anxiety, Benign prostatic hyperplasia, Dyslipidemia, Liver cancer, Rheumatoid arthritis, Sepsis, Thyroid disorder, Urinary tract infection

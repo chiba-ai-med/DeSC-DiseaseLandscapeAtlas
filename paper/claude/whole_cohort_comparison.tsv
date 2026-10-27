@@ -1,0 +1,52 @@
+disease	old_pass	new_pass	changed
+acute_renal_failure	PASS	PASS	
+anemia	PASS	PASS	
+anxiety	PASS	FAIL	YES
+aspiration_pneumonia	PASS	PASS	
+asthma	PASS	PASS	
+atrial_fibrillation	PASS	PASS	
+autoimmune_connective_tissue	PASS	FAIL	YES
+benign_prostatic_hyperplasia	PASS	FAIL	YES
+breast_cancer	PASS	PASS	
+cirrhosis_fibrosis	PASS	PASS	
+ckd	PASS	PASS	
+colorectal_cancer	PASS	PASS	
+copd	PASS	FAIL	YES
+delirium	FAIL	PASS	YES
+dementia	PASS	PASS	
+depression	PASS	FAIL	YES
+diabetes	PASS	PASS	
+dyslipidemia	PASS	FAIL	YES
+epilepsy	PASS	PASS	
+gout	PASS	PASS	
+heart_failure	FAIL	PASS	YES
+hematologic_malignancy	PASS	PASS	
+hip_fracture	FAIL	PASS	YES
+hypertension	PASS	PASS	
+inflammatory_bowel_disease	PASS	PASS	
+interstitial_lung_disease	PASS	PASS	
+ischemic_heart_disease	PASS	PASS	
+liver_cancer	FAIL	PASS	YES
+liver_disease	PASS	PASS	
+lung_cancer	PASS	PASS	
+malignancy	PASS	PASS	
+malnutrition	PASS	PASS	
+metastatic_cancer	PASS	PASS	
+obesity	PASS	PASS	
+osteoarthritis	PASS	PASS	
+osteoporosis	PASS	PASS	
+pancreatic_cancer	FAIL	PASS	YES
+parkinson	PASS	PASS	
+peptic_ulcer	PASS	PASS	
+pneumonia	PASS	PASS	
+prostate_cancer	PASS	PASS	
+rheumatoid_arthritis	PASS	FAIL	YES
+schizophrenia	PASS	PASS	
+sepsis	FAIL	FAIL	
+sleep_disorders	PASS	PASS	
+stomach_cancer	PASS	PASS	
+stroke	PASS	PASS	
+thyroid_disorder	PASS	FAIL	YES
+tuberculosis	FAIL	FAIL	
+urinary_tract_infection	PASS	FAIL	YES
+viral_hepatitis	FAIL	PASS	YES
