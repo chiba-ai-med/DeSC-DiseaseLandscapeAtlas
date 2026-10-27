@@ -1,7 +1,7 @@
 Pattern	Basins	Cox_direction	Transition_rate	Asymmetry	n	Diseases
-Homogeneous	1	Predictive	-	-	13	Autoimmune connective tissue, Cirrhosis/fibrosis, Colorectal cancer, COPD, Gout, Interstitial lung disease, Ischemic heart disease, Liver disease, Lung cancer, Metastatic cancer, Obesity, Stomach cancer, Stroke
-Non-predictive	1	Reversed	-	-	4	Breast cancer, Hip fracture, Pancreatic cancer, Tuberculosis
-Progressive	Multi	Predictive	Low (<5%/mo)	High (>0.6)	6	Anemia, Hematologic malignancy, Inflammatory bowel disease, Malignancy, Peptic ulcer, Urinary tract infection
-Convergent	Multi	Predictive	Mid-High (5-11%/mo)	Moderate (0.3-0.6)	16	Aspiration pneumonia, Atrial fibrillation, Benign prostatic hyperplasia, Delirium, Diabetes, Epilepsy, Liver cancer, Malnutrition, Osteoarthritis, Osteoporosis, Pneumonia, Rheumatoid arthritis, Schizophrenia, Sleep disorders, Thyroid disorder, Viral hepatitis
-Symmetric	Multi	Predictive	Mid-High (5-10%/mo)	Low (<0.3)	10	Acute renal failure, Anxiety, Asthma, CKD, Dementia, Depression, Dyslipidemia, Hypertension, Parkinson disease, Prostate cancer
-Structured non-predictive	Multi	Reversed	Any	Any	2	Heart failure, Sepsis
+Homogeneous	1	Predictive	-	-	14	Breast cancer, Cirrhosis/fibrosis, Colorectal cancer, Gout, Hip fracture, Interstitial lung disease, Ischemic heart disease, Liver disease, Lung cancer, Metastatic cancer, Obesity, Pancreatic cancer, Stomach cancer, Stroke
+Reversed	1	Reversed	-	-	3	Autoimmune connective tissue, COPD, Tuberculosis
+Symmetric	Multi	Predictive	5-8%/step	Low (<0.3)	7	Acute renal failure, CKD, Dementia, Depression, Epilepsy, Hypertension, Prostate cancer
+Convergent	Multi	Predictive	5-11%/step	Moderate (0.3-0.6)	11	Aspiration pneumonia, Atrial fibrillation, Delirium, Heart failure, Inflammatory bowel disease, Malnutrition, Parkinson disease, Pneumonia, Schizophrenia, Sleep disorders, Viral hepatitis
+Progressive	Multi	Predictive	0.5-8%/step	High (>0.6)	8	Anemia, Asthma, Diabetes, Hematologic malignancy, Malignancy, Osteoarthritis, Osteoporosis, Peptic ulcer
+Structured reversed	Multi	Reversed	6-12%/step	Various	8	Anxiety, Benign prostatic hyperplasia, Dyslipidemia, Liver cancer, Rheumatoid arthritis, Sepsis, Thyroid disorder, Urinary tract infection
