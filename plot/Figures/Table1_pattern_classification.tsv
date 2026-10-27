@@ -1,7 +1,7 @@
 Pattern	Basins	Cox_direction	Asymmetry	n	Diseases
-Homogeneous	1	Expected	-	14	Breast cancer, Cirrhosis/fibrosis, Colorectal cancer, Gout, Hip fracture, Interstitial lung disease, Ischemic heart disease, Liver disease, Lung cancer, Metastatic cancer, Obesity, Pancreatic cancer, Stomach cancer, Stroke
-Reversed	1	Reversed	-	3	Autoimmune connective tissue, COPD, Tuberculosis
-Symmetric	Multi	Expected	Low (<0.3)	6	Acute renal failure, CKD, Depression, Hypertension, Malnutrition, Prostate cancer
-Convergent	Multi	Expected	Moderate (0.3-0.6)	10	Atrial fibrillation, Delirium, Dementia, Epilepsy, Heart failure, Parkinson disease, Pneumonia, Schizophrenia, Sleep disorders, Viral hepatitis
+Homogeneous	1	Expected	-	10	Breast cancer, Colorectal cancer, Interstitial lung disease, Ischemic heart disease, Liver disease, Lung cancer, Metastatic cancer, Obesity, Stomach cancer, Stroke
+Reversed	1	Reversed	-	7	Autoimmune connective tissue, Cirrhosis/fibrosis, COPD, Gout, Hip fracture, Pancreatic cancer, Tuberculosis
+Symmetric	Multi	Expected	Low (<0.3)	3	CKD, Hypertension, Malnutrition
+Convergent	Multi	Expected	Moderate (0.3-0.6)	4	Atrial fibrillation, Dementia, Heart failure, Sleep disorders
 Progressive	Multi	Expected	High (>0.6)	10	Anemia, Aspiration pneumonia, Asthma, Diabetes, Hematologic malignancy, Inflammatory bowel disease, Malignancy, Osteoarthritis, Osteoporosis, Peptic ulcer
-Structured reversed	Multi	Reversed	Various	8	Anxiety, Benign prostatic hyperplasia, Dyslipidemia, Liver cancer, Rheumatoid arthritis, Sepsis, Thyroid disorder, Urinary tract infection
+Structured reversed	Multi	Reversed	Various	17	Acute renal failure, Anxiety, Benign prostatic hyperplasia, Delirium, Depression, Dyslipidemia, Epilepsy, Liver cancer, Parkinson disease, Pneumonia, Prostate cancer, Rheumatoid arthritis, Schizophrenia, Sepsis, Thyroid disorder, Urinary tract infection, Viral hepatitis

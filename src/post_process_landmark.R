@@ -1,164 +1,77 @@
-## Post-process landmark Cox results:
-## 1. Compute per-basin majority criterion
-## 2. Update atlas_summary.tsv with per-basin majority direction_ok
-## 3. Regenerate atlas heatmap
+## Post-process: verify cohort table consistency with Cox results
+## Reads landmark_cohort.tsv per disease and checks counts against summary TSVs
+##
+## Usage: Rscript src/post_process_landmark.R
 
-suppressPackageStartupMessages({
-  library(data.table)
-  library(ggplot2)
-})
+suppressPackageStartupMessages(library(data.table))
 
 base <- "/home/koki/dev/DeSC-DiseaseLandscapeAtlas"
 setwd(base)
-SCRATCH <- "/tmp/claude-1002/-home-koki-dev-DeSC-DiseaseLandscapeAtlas-paper-claude/f5e2f2fe-00ad-43ab-ac3c-a2358eb43a33/scratchpad"
 
-# ============================================================
-# 1. Load results
-# ============================================================
-overall <- fread(file.path(SCRATCH, "landmark_all_diseases_overall.tsv"))
-per_basin <- fread(file.path(SCRATCH, "landmark_all_diseases_per_basin.tsv"))
+cat("=== Verifying landmark cohort tables vs results ===\n\n")
 
-cat(sprintf("Overall: %d diseases\n", nrow(overall)))
-cat(sprintf("Per-basin: %d rows across %d diseases\n",
-            nrow(per_basin), length(unique(per_basin$disease))))
-
-# ============================================================
-# 2. Per-basin majority criterion
-# ============================================================
-pb_summary <- per_basin[basin_id > 0 & direction %in% c("PASS", "FAIL"),
-                        .(n_basins_valid = .N,
-                          n_pass = sum(direction == "PASS")),
-                        by = disease]
-pb_summary[, majority_pass := n_pass >= n_basins_valid / 2]
-
-# Single-basin diseases: use overall direction
-single_basin <- overall[!disease %in% pb_summary$disease & direction %in% c("PASS", "FAIL")]
-if (nrow(single_basin) > 0) {
-  single_basin[, `:=`(n_basins_valid = 1L,
-                       n_pass = as.integer(direction == "PASS"),
-                       majority_pass = direction == "PASS")]
-  pb_summary <- rbind(pb_summary, single_basin[, .(disease, n_basins_valid, n_pass, majority_pass)])
-}
-
-cat("\n=== Per-basin majority criterion ===\n")
-cat(sprintf("  Diseases with majority PASS: %d\n", sum(pb_summary$majority_pass)))
-cat(sprintf("  Diseases with majority FAIL: %d\n", sum(!pb_summary$majority_pass)))
-
-# Detailed per-basin results
-cat("\n--- Per-basin detail ---\n")
-for (d in sort(pb_summary$disease)) {
-  pb_d <- per_basin[disease == d & basin_id > 0 & direction %in% c("PASS", "FAIL")]
-  ov_d <- overall[disease == d]
-  maj <- pb_summary[disease == d, majority_pass]
-  if (nrow(pb_d) > 0) {
-    detail <- paste(sprintf("B%s:HR=%.3f(%s)", pb_d$basin_id, pb_d$HR, pb_d$direction), collapse=", ")
-  } else {
-    detail <- sprintf("overall:HR=%.3f(%s)", ov_d$HR, ov_d$direction)
-  }
-  cat(sprintf("  %-35s %d/%d → %s  [%s]\n",
-              d,
-              pb_summary[disease == d, n_pass],
-              pb_summary[disease == d, n_basins_valid],
-              ifelse(maj, "PASS", "FAIL"),
-              detail))
-}
-
-# ============================================================
-# 3. Update atlas_summary.tsv with per-basin majority criterion
-# ============================================================
-cat("\n=== Updating atlas_summary.tsv ===\n")
-
+overall <- fread("summary/landmark_all_diseases_overall.tsv")
+per_basin <- fread("summary/landmark_all_diseases_per_basin.tsv")
 atlas <- fread("summary/atlas_summary.tsv")
-cat(sprintf("  Existing atlas rows: %d\n", nrow(atlas)))
 
-# Merge per-basin majority
-# Compute per-basin majority for pipeline-compatible output
-# The per_basin results include basin_id=0 (non-basin); exclude it
-per_basin_valid <- per_basin[basin_id > 0 & direction %in% c("PASS", "FAIL")]
-pb_maj <- per_basin_valid[, .(n_pass = sum(direction == "PASS"),
-                               n_total = .N),
-                           by = disease]
-pb_maj[, majority_pass := n_pass >= n_total / 2]
+diseases <- overall[direction %in% c("PASS", "FAIL"), disease]
+n_ok <- 0L
+n_fail <- 0L
 
-atlas[, direction_ok_overall := direction_ok]
-atlas[, direction_ok := NULL]
+for (d in diseases) {
+  cohort_path <- file.path("output", d, "all_comorbid", "landmark", "landmark_cohort.tsv")
+  if (!file.exists(cohort_path)) {
+    cat(sprintf("  MISSING: %s\n", cohort_path))
+    n_fail <- n_fail + 1L
+    next
+  }
 
-maj_dt <- pb_maj[, .(disease_family = disease, majority_pass)]
-atlas <- merge(atlas, maj_dt, by = "disease_family", all.x = TRUE)
-atlas[, direction_ok := majority_pass]
-atlas[, majority_pass := NULL]
+  dt <- fread(cohort_path)
+  ov <- overall[disease == d]
 
-atlas[is.na(direction_ok), direction_ok := direction_ok_overall]
-atlas[, direction_ok_overall := NULL]
+  # Basin check: all > 0
+  if (any(dt$basin_id <= 0, na.rm = TRUE)) {
+    cat(sprintf("  ERROR %s: basin_id <= 0 found in cohort table\n", d))
+    n_fail <- n_fail + 1L
+  }
 
-# Also update per-disease pipeline output files to exclude basin_id=0
-for (d in unique(per_basin_valid$disease)) {
-  out_dir <- file.path("output", d, "all_comorbid", "cox", "7")
-  if (!dir.exists(out_dir)) next
-  pb_d <- per_basin_valid[disease == d]
-  if (nrow(pb_d) == 0) next
-  pb_out <- data.table(
-    disease_family = d,
-    basin_id = pb_d$basin_id,
-    outcome = "mortality",
-    HR = pb_d$HR,
-    HR_lower = pb_d$HR_lo,
-    HR_upper = pb_d$HR_hi,
-    pvalue = pb_d$pval,
-    direction_ok = pb_d$direction == "PASS",
-    n_patients = pb_d$N,
-    n_deaths = pb_d$deaths,
-    death_rate = pb_d$deaths / pb_d$N,
-    note = ""
-  )
-  fwrite(pb_out, file.path(out_dir, "energy_sanity_check_per_basin.tsv"), sep = "\t")
+  # Mortality population (riyouka=1)
+  mort <- dt[shibou_flg_riyouka == 1L]
+  mort_n <- nrow(mort)
+  mort_d <- sum(mort$event_death, na.rm = TRUE)
+  mort_c <- mort_n - mort_d
+
+  if (mort_n != ov$N || mort_d != ov$deaths || mort_c != ov$censored) {
+    cat(sprintf("  MISMATCH %s: cohort N=%d/d=%d/c=%d vs result N=%d/d=%d/c=%d\n",
+                d, mort_n, mort_d, mort_c, ov$N, ov$deaths, ov$censored))
+    n_fail <- n_fail + 1L
+  } else {
+    n_ok <- n_ok + 1L
+  }
+
+  # Per-basin N/deaths check
+  pb <- per_basin[disease == d]
+  for (b in unique(pb$basin_id)) {
+    sub_c <- mort[basin_id == b]
+    sub_r <- pb[basin_id == b]
+    if (nrow(sub_c) != sub_r$N || sum(sub_c$event_death) != sub_r$deaths) {
+      cat(sprintf("  BASIN MISMATCH %s basin %d: cohort N=%d/d=%d vs result N=%d/d=%d\n",
+                  d, b, nrow(sub_c), sum(sub_c$event_death), sub_r$N, sub_r$deaths))
+      n_fail <- n_fail + 1L
+    }
+  }
 }
 
-fwrite(atlas, "summary/atlas_summary.tsv", sep = "\t")
-cat(sprintf("  Updated atlas_summary.tsv: %d rows\n", nrow(atlas)))
+# Atlas n_basins check
+for (d in atlas$disease_family) {
+  a_nb <- atlas[disease_family == d, n_basins]
+  pb_nb <- per_basin[disease == d, uniqueN(basin_id)]
+  if (a_nb != pb_nb) {
+    cat(sprintf("  ATLAS n_basins mismatch %s: atlas=%d vs per_basin distinct=%d\n",
+                d, a_nb, pb_nb))
+    n_fail <- n_fail + 1L
+  }
+}
 
-# Summary counts
-n_pass <- sum(atlas$direction_ok == TRUE, na.rm = TRUE)
-n_fail <- sum(atlas$direction_ok == FALSE, na.rm = TRUE)
-n_na <- sum(is.na(atlas$direction_ok))
-cat(sprintf("  Per-basin majority: PASS=%d, FAIL=%d, NA=%d\n", n_pass, n_fail, n_na))
-
-# List FAIL diseases
-fail_diseases <- atlas[direction_ok == FALSE, disease_family]
-cat(sprintf("\n  FAIL diseases (%d): %s\n", length(fail_diseases), paste(fail_diseases, collapse = ", ")))
-
-# ============================================================
-# 4. Regenerate atlas heatmap
-# ============================================================
-cat("\n=== Regenerating atlas heatmap ===\n")
-
-sm <- fread("summary/atlas_summary.tsv")
-sm[, direction_label := ifelse(
-  is.na(direction_ok), "N/A",
-  ifelse(direction_ok == TRUE, "PASS", "FAIL")
-)]
-sm[, hr_label := sprintf("%.3f", HR)]
-sm[, disease_family := factor(disease_family,
-     levels = rev(sort(unique(disease_family))))]
-
-g <- ggplot(sm, aes(x = outcome, y = disease_family,
-                     fill = direction_label)) +
-  geom_tile(color = "white", linewidth = 1) +
-  geom_text(aes(label = hr_label), size = 3) +
-  scale_fill_manual(
-    values = c(PASS = "#4CAF50", FAIL = "#F44336", "N/A" = "gray80"),
-    name = "Per-basin majority"
-  ) +
-  labs(title = "Energy Cox Sanity Check Atlas (Landmark Design)",
-       subtitle = "Overall HR; color = per-basin majority criterion (HR<1 in ≥half basins)",
-       x = NULL, y = NULL) +
-  theme_minimal(base_size = 11) +
-  theme(axis.text.y = element_text(size = 8))
-
-ggsave("plot/atlas_heatmap.png", g, width = 8, height = 16, dpi = 200)
-cat("  Written: plot/atlas_heatmap.png\n")
-
-# Also save to SCRATCH for reference
-ggsave(file.path(SCRATCH, "landmark_atlas_heatmap.png"), g, width = 8, height = 16, dpi = 200)
-
-cat("\n=== Post-processing complete ===\n")
+cat(sprintf("\n=== Verification: %d OK, %d failures ===\n", n_ok, n_fail))
+if (n_fail > 0) quit(status = 1)

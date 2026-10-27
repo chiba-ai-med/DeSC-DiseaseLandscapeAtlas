@@ -1,60 +1,81 @@
-## Landmark Cox for all 51 diseases using compact binary window lookup
+## Unified landmark Cox analysis for all 51 diseases
+## Builds shared cohort table, runs mortality + hospitalization Cox, generates KM
 ##
-## Usage: Rscript landmark_cox_all_diseases.R
+## Usage: Rscript src/landmark_cox_all_diseases.R [window_lookup.bin]
 
 suppressPackageStartupMessages({
   library(data.table)
   library(survival)
+  library(ggplot2)
 })
 
 base <- "/home/koki/dev/DeSC-DiseaseLandscapeAtlas"
 setwd(base)
-SCRATCH <- "/tmp/claude-1002/-home-koki-dev-DeSC-DiseaseLandscapeAtlas-paper-claude/f5e2f2fe-00ad-43ab-ac3c-a2358eb43a33/scratchpad"
+
+bin_arg <- commandArgs(trailingOnly = TRUE)
+BIN_PATH <- if (length(bin_arg) > 0) bin_arg[1] else
+  "/tmp/claude-1002/-home-koki-dev-DeSC-DiseaseLandscapeAtlas-paper-claude/f5e2f2fe-00ad-43ab-ac3c-a2358eb43a33/scratchpad/window_lookup.bin"
+
 DATA_START <- "2014/04"
 DATA_END   <- "2022/02"
+CASE_DISEASES <- c("dementia", "thyroid_disorder", "anemia", "tuberculosis")
 
+# ============================================================
+# Utility functions
+# ============================================================
 parse_ym <- function(s) {
   as.numeric(substr(s, 1, 4)) + (as.numeric(substr(s, 6, 7)) - 1) / 12
 }
 
-decode_ym <- function(encoded) {
-  yr <- encoded %/% 12L
-  mo <- encoded %% 12L
+decode_ym <- function(enc) {
+  yr <- enc %/% 12L
+  mo <- enc %% 12L + 1L
   sprintf("%04d/%02d", yr, mo)
 }
 
-add_months_str <- function(ym_str, n) {
-  y <- as.integer(substr(ym_str, 1, 4))
-  m <- as.integer(substr(ym_str, 6, 7))
-  m2 <- m + n
-  y2 <- y + (m2 - 1L) %/% 12L
-  m2 <- ((m2 - 1L) %% 12L) + 1L
-  sprintf("%04d/%02d", y2, m2)
+# Round-trip test (encode = year*12 + (month-1), decode = %/%12 and %%12+1)
+encode_ym <- function(s) {
+  as.integer(substr(s, 1, 4)) * 12L + as.integer(substr(s, 6, 7)) - 1L
 }
 
-# ============================================================
-# STEP 1: Load compact binary window lookup (1.4GB, all 347M rows)
-# ============================================================
-cat("=== Loading compact window lookup ===\n")
-bin_path <- file.path(SCRATCH, "window_lookup.bin")
-stopifnot(file.exists(bin_path))
+cat("=== Round-trip encode/decode test ===\n")
+for (y in c(2014L, 2020L, 2022L)) {
+  for (m in 1:12) {
+    s <- sprintf("%04d/%02d", y, m)
+    enc <- encode_ym(s)
+    dec <- decode_ym(enc)
+    stopifnot(dec == s)
+  }
+}
+cat("  PASSED: all 36 year-month combinations\n")
 
-con <- file(bin_path, "rb")
-raw <- readBin(con, "integer", n = 347764079L * 2L, size = 2L, signed = FALSE, endian = "little")
+# ============================================================
+# STEP 1: Load compact binary window lookup
+# ============================================================
+cat("\n=== Loading compact window lookup ===\n")
+stopifnot(file.exists(BIN_PATH))
+
+N_ROWS <- 347764079L
+con <- file(BIN_PATH, "rb")
+raw <- readBin(con, "integer", n = N_ROWS * 2L, size = 2L,
+               signed = FALSE, endian = "little")
 close(con)
-cat(sprintf("  Loaded %d uint16 values (%.1f GB)\n", length(raw), length(raw) * 2 / 1e9))
+stopifnot(length(raw) == N_ROWS * 2L)
 
-# Reshape: raw[1] = start of row 1, raw[2] = end of row 1, raw[3] = start of row 2, ...
-# Index: start[i] = raw[2*(i-1)+1], end[i] = raw[2*(i-1)+2]
-# For vectorized access: use even/odd indexing
-win_start_enc <- raw[seq(1L, length(raw), 2L)]  # odd positions = starts
-win_end_enc   <- raw[seq(2L, length(raw), 2L)]  # even positions = ends
-rm(raw)
-gc()
-cat(sprintf("  Window lookup ready: %d rows\n", length(win_start_enc)))
+win_start_enc <- raw[seq(1L, length(raw), 2L)]
+win_end_enc   <- raw[seq(2L, length(raw), 2L)]
+rm(raw); gc()
+cat(sprintf("  Loaded %d window pairs\n", length(win_start_enc)))
+
+# Verify row_id alignment: spot-check a few known rows
+# Row 1 should decode to 2014/04..2014/09 (from the TSV)
+r1_start <- decode_ym(win_start_enc[1])
+r1_end   <- decode_ym(win_end_enc[1])
+cat(sprintf("  Row 1: %s..%s (expected 2014/04..2014/09)\n", r1_start, r1_end))
+stopifnot(r1_start == "2014/04" && r1_end == "2014/09")
 
 # ============================================================
-# STEP 2: Load tekiyo (once for all diseases)
+# STEP 2: Load tekiyo
 # ============================================================
 cat("\n=== Loading tekiyo ===\n")
 tek <- fread("data/tekiyo.csv",
@@ -62,10 +83,18 @@ tek <- fread("data/tekiyo.csv",
                         "observable_start_ym", "observable_end_ym",
                         "shibou_flg", "shibou_flg_riyouka"))
 tek[, kojin_id := as.character(kojin_id)]
-cat(sprintf("  %d patients\n", nrow(tek)))
+tek[, shibou_flg_riyouka := as.integer(shibou_flg_riyouka)]
+# For riyouka=1: shibou_flg "1" → 1 (dead), anything else → 0 (alive/censored)
+# For riyouka=0/NA: leave shibou_flg as-is (not used in mortality Cox)
+tek[shibou_flg_riyouka == 1L,
+    event_death := fifelse(!is.na(shibou_flg) & shibou_flg == "1", 1L, 0L)]
+cat(sprintf("  %d patients, %d with riyouka=1, %d deaths among riyouka=1\n",
+            nrow(tek),
+            sum(tek$shibou_flg_riyouka == 1L, na.rm = TRUE),
+            sum(tek$event_death == 1L, na.rm = TRUE)))
 
 # ============================================================
-# STEP 3: Get disease list
+# STEP 3: Disease list
 # ============================================================
 diseases <- fread("config/disease_families.tsv", sep = "\t")
 disease_list <- diseases[family_id != "hf_cancer", family_id]
@@ -74,47 +103,43 @@ cat(sprintf("\n=== Processing %d diseases ===\n\n", length(disease_list)))
 # ============================================================
 # STEP 4: Process each disease
 # ============================================================
-overall_results <- list()
-basin_results <- list()
+overall_mort <- list()
+overall_hosp <- list()
+basin_mort <- list()
+basin_hosp <- list()
 
 for (di in seq_along(disease_list)) {
   disease <- disease_list[di]
   base_dir <- file.path("output", disease, "all_comorbid")
-  cat(sprintf("[%d/%d] %s ...\n", di, length(disease_list), disease))
+  cat(sprintf("[%d/%d] %s\n", di, length(disease_list), disease))
   t0 <- proc.time()["elapsed"]
 
   # --- Load person_map ---
   pmap_path <- file.path(base_dir, "cohort", "person_map.tsv")
   pmap <- fread(pmap_path)
   pmap[, kojin_id := as.character(kojin_id)]
-  n_obs <- nrow(pmap)
-  n_patients <- uniqueN(pmap$kojin_id)
 
   # --- Window lookup via binary index ---
-  valid_idx <- pmap$old_row_id >= 1L & pmap$old_row_id <= length(win_start_enc)
+  valid_idx <- pmap$old_row_id >= 1L & pmap$old_row_id <= N_ROWS
   pmap[valid_idx, `:=`(
-    win_s_enc = win_start_enc[old_row_id],
-    win_e_enc = win_end_enc[old_row_id]
+    ws_enc = win_start_enc[old_row_id],
+    we_enc = win_end_enc[old_row_id]
   )]
-  pmap[valid_idx & win_s_enc > 0L, window_start := decode_ym(win_s_enc)]
-  pmap[valid_idx & win_e_enc > 0L, window_end := decode_ym(win_e_enc)]
-  pmap[, c("win_s_enc", "win_e_enc") := NULL]
+  pmap <- pmap[!is.na(ws_enc) & ws_enc > 0L & !is.na(we_enc) & we_enc > 0L]
+  pmap[, window_start := decode_ym(ws_enc)]
+  pmap[, window_end   := decode_ym(we_enc)]
+  pmap[, c("ws_enc", "we_enc") := NULL]
 
-  # --- Landscape assignment ---
+  # --- Landscape: bit-key → basin_id + energy ---
   ls_dir <- file.path(base_dir, "landscaper", "7")
   sbmap <- fread(file.path(ls_dir, "state_basin_map.tsv"))
 
   scores_mm_path <- file.path(base_dir, "pca", "7", "Scores.mm")
   if (!file.exists(scores_mm_path)) {
-    cat(sprintf("  SKIP: no Scores.mm\n"))
-    next
+    cat("  SKIP: no Scores.mm\n"); next
   }
 
-  # Read MM header to get nrows, then stream COO entries via fread
   hdr <- readLines(scores_mm_path, n = 2)
-  dims <- as.integer(strsplit(trimws(hdr[2]), " +")[[1]])
-  n_rows_ls <- dims[1]
-
   ij_dt <- fread(scores_mm_path, skip = 2, header = FALSE,
                  col.names = c("i", "j"), select = 1:2)
   ij_dt[, bv := 2L^(j - 1L)]
@@ -128,11 +153,8 @@ for (di in seq_along(disease_list)) {
   }
   key2pid <- setNames(seq_len(nrow(allstates)), as_keys)
 
-  # Map bit-key → pattern_id directly on key_dt (avoids n_rows_ls-length vector)
   key_dt[, pattern_id := as.integer(key2pid[as.character(key)])]
   setnames(key_dt, "i", "new_row_id")
-
-  # Merge with state_basin_map to get basin_id and energy
   key_dt <- merge(key_dt, sbmap[, .(pattern_id = state_id, basin_id, energy)],
                   by = "pattern_id", all.x = TRUE)
 
@@ -140,7 +162,7 @@ for (di in seq_along(disease_list)) {
                 by = "new_row_id", all.x = TRUE)
   rm(key_dt)
 
-  # Fill all-negative state rows (absent from Scores.mm → NA after merge)
+  # All-negative state (key=0, absent from Scores.mm)
   all_neg_pid <- as.integer(key2pid["0"])
   if (!is.na(all_neg_pid)) {
     neg_info <- sbmap[state_id == all_neg_pid]
@@ -153,161 +175,312 @@ for (di in seq_along(disease_list)) {
   # --- Merge tekiyo ---
   pmap <- merge(pmap, tek, by = "kojin_id", all.x = TRUE)
 
-  # --- Eligibility ---
+  # --- Eligibility: basin_id > 0, window within insurance + data period ---
   pmap[, eligible := (
-    !is.na(window_start) &
+    !is.na(basin_id) & basin_id > 0L &
     window_start >= observable_start_ym &
     window_end <= observable_end_ym &
     window_start >= DATA_START &
-    window_end <= DATA_END &
-    !is.na(basin_id)
+    window_end <= DATA_END
   )]
 
-  n_eligible_pts <- uniqueN(pmap[eligible == TRUE, kojin_id])
-
-  # --- First eligible window ---
   eligible_obs <- pmap[eligible == TRUE]
   if (nrow(eligible_obs) == 0) {
-    cat(sprintf("  SKIP: no eligible observations\n"))
-    overall_results[[disease]] <- data.table(
-      disease = disease, design = "landmark",
-      HR = NA_real_, HR_lo = NA_real_, HR_hi = NA_real_,
-      pval = NA_real_, N = 0L, deaths = 0L, direction = "SKIP"
-    )
-    rm(pmap, eligible_obs); gc()
-    next
+    cat("  SKIP: no eligible observations\n")
+    overall_mort[[disease]] <- data.table(
+      disease = disease, HR = NA_real_, HR_lo = NA_real_, HR_hi = NA_real_,
+      pval = NA_real_, N = 0L, deaths = 0L, censored = 0L, direction = "SKIP")
+    rm(pmap, eligible_obs); gc(); next
   }
 
-  setorder(eligible_obs, kojin_id, old_row_id)
+  # --- First eligible window by actual calendar month ---
+  setorder(eligible_obs, kojin_id, window_start, old_row_id)
   landmark <- eligible_obs[!duplicated(kojin_id)]
   rm(eligible_obs)
 
-  # --- Landmark timing ---
-  landmark[, landmark_ym := add_months_str(window_end, 1L)]
-  landmark[, landmark_y := parse_ym(landmark_ym)]
-  landmark[, obs_start_y := parse_ym(observable_start_ym)]
-  landmark[, obs_end_y := parse_ym(observable_end_ym)]
-  landmark[, followup_time := obs_end_y - landmark_y]
+  # --- Follow-up: from window_end to observable_end_ym ---
+  landmark[, fu_time := parse_ym(observable_end_ym) - parse_ym(window_end)]
+  landmark <- landmark[fu_time > 0]
 
-  # --- Exclusions ---
-  landmark[, riyouka := as.integer(shibou_flg_riyouka)]
-  landmark[, dead := (!is.na(shibou_flg) & shibou_flg == 1)]
-  landmark[, died_before := (dead & obs_end_y <= landmark_y)]
-  landmark[, left_before := (!dead & obs_end_y <= landmark_y)]
+  # Age at landmark
+  landmark[, age_at_lm := parse_ym(window_start) - parse_ym(birth_ym)]
 
-  cox_pop <- landmark[riyouka == 1 &
-                      !died_before &
-                      !left_before &
-                      followup_time > 0]
-
-  if (nrow(cox_pop) < 100 || sum(cox_pop$dead) < 20) {
-    cat(sprintf("  SKIP: too few (N=%d, deaths=%d)\n", nrow(cox_pop), sum(cox_pop$dead)))
-    overall_results[[disease]] <- data.table(
-      disease = disease, design = "landmark",
-      HR = NA_real_, HR_lo = NA_real_, HR_hi = NA_real_,
-      pval = NA_real_, N = nrow(cox_pop), deaths = sum(cox_pop$dead), direction = "SKIP"
-    )
-    rm(pmap, landmark, cox_pop); gc()
-    next
+  # --- Load disease-specific hospitalization ---
+  hosp_path <- file.path(base_dir, "cohort", "person_hospitalization_specific.tsv")
+  if (file.exists(hosp_path)) {
+    hosp <- fread(hosp_path)
+    hosp[, kojin_id := as.character(kojin_id)]
+    hosp[, admission_ym := substr(first_admission_ymd, 1, 7)]
+    landmark <- merge(landmark, hosp[, .(kojin_id, admission_ym)],
+                      by = "kojin_id", all.x = TRUE)
+    rm(hosp)
+  } else {
+    landmark[, admission_ym := NA_character_]
   }
 
-  cox_pop[, birth_y := parse_ym(birth_ym)]
-  cox_pop[, age_at_landmark := landmark_y - birth_y]
-  cox_pop[, event := as.integer(dead)]
-  cox_pop[, E_z := scale(energy)[,1]]
+  # Hospitalization event: admission after window_end
+  landmark[, event_hosp := fifelse(
+    !is.na(admission_ym) & admission_ym > window_end, 1L, 0L)]
+  # Hospitalization follow-up: to admission if post-landmark, else to obs_end
+  landmark[, fu_hosp := fifelse(
+    event_hosp == 1L,
+    parse_ym(admission_ym) - parse_ym(window_end),
+    fu_time)]
+  landmark[fu_hosp <= 0, `:=`(event_hosp = 0L, fu_hosp = fu_time)]
 
-  n_final <- nrow(cox_pop)
-  n_deaths <- sum(cox_pop$event)
-  n_excluded_riy <- sum(landmark$riyouka == 0, na.rm = TRUE)
-  n_died_before <- sum(landmark$died_before, na.rm = TRUE)
-  n_left_before <- sum(landmark$left_before, na.rm = TRUE)
+  n_all <- nrow(landmark)
 
-  # --- Overall Cox ---
-  fit <- tryCatch(
-    coxph(Surv(followup_time, event) ~ E_z + age_at_landmark + factor(sex_code),
-          data = cox_pop),
-    error = function(e) NULL
-  )
+  # --- Save landmark cohort table ---
+  cohort_dir <- file.path(base_dir, "landmark")
+  dir.create(cohort_dir, recursive = TRUE, showWarnings = FALSE)
+  cohort_out <- landmark[, .(
+    kojin_id, window_start, window_end, basin_id, energy,
+    birth_ym, sex_code, observable_start_ym, observable_end_ym,
+    shibou_flg_riyouka, event_death, fu_time,
+    admission_ym, event_hosp, fu_hosp, age_at_lm)]
+  fwrite(cohort_out, file.path(cohort_dir, "landmark_cohort.tsv"), sep = "\t")
+  rm(cohort_out)
 
-  if (is.null(fit)) {
-    cat(sprintf("  MODEL FAILED: N=%d\n", n_final))
-    overall_results[[disease]] <- data.table(
-      disease = disease, design = "landmark",
-      HR = NA_real_, HR_lo = NA_real_, HR_hi = NA_real_,
-      pval = NA_real_, N = n_final, deaths = n_deaths, direction = "ERROR"
-    )
-    rm(pmap, landmark, cox_pop); gc()
-    next
+  # ==========================================================
+  # MORTALITY COX (riyouka=1 subset)
+  # ==========================================================
+  mort_pop <- landmark[shibou_flg_riyouka == 1L]
+  n_mort <- nrow(mort_pop)
+  n_deaths <- sum(mort_pop$event_death, na.rm = TRUE)
+  n_cens_mort <- n_mort - n_deaths
+
+  if (n_mort < 100 || n_deaths < 20) {
+    cat(sprintf("  Mortality SKIP: N=%d, deaths=%d\n", n_mort, n_deaths))
+    overall_mort[[disease]] <- data.table(
+      disease = disease, HR = NA_real_, HR_lo = NA_real_, HR_hi = NA_real_,
+      pval = NA_real_, N = n_mort, deaths = n_deaths, censored = n_cens_mort,
+      direction = "SKIP")
+  } else {
+    mort_pop[, E_z := scale(energy)[,1]]
+
+    fit <- tryCatch(
+      coxph(Surv(fu_time, event_death) ~ E_z + age_at_lm + factor(sex_code),
+            data = mort_pop),
+      error = function(e) NULL)
+
+    if (is.null(fit)) {
+      overall_mort[[disease]] <- data.table(
+        disease = disease, HR = NA_real_, HR_lo = NA_real_, HR_hi = NA_real_,
+        pval = NA_real_, N = n_mort, deaths = n_deaths, censored = n_cens_mort,
+        direction = "ERROR")
+    } else {
+      s <- summary(fit)
+      hr <- s$conf.int["E_z", ]
+      pval <- s$coefficients["E_z", "Pr(>|z|)"]
+      dir_ <- ifelse(hr[1] < 1, "PASS", "FAIL")
+
+      overall_mort[[disease]] <- data.table(
+        disease = disease, HR = hr[1], HR_lo = hr[3], HR_hi = hr[4],
+        pval = pval, N = n_mort, deaths = n_deaths, censored = n_cens_mort,
+        direction = dir_,
+        median_fu = median(mort_pop$fu_time))
+
+      cat(sprintf("  Mortality: N=%d, deaths=%d, cens=%d, HR=%.4f [%.4f,%.4f] → %s\n",
+                  n_mort, n_deaths, n_cens_mort, hr[1], hr[3], hr[4], dir_))
+
+      # Per-basin mortality Cox
+      for (b in sort(unique(mort_pop$basin_id))) {
+        sub <- mort_pop[basin_id == b]
+        d_b <- sum(sub$event_death)
+        if (d_b < 10) {
+          basin_mort[[paste0(disease,"_",b)]] <- data.table(
+            disease=disease, basin_id=b, N=nrow(sub), deaths=d_b,
+            censored=nrow(sub)-d_b,
+            HR=NA_real_, HR_lo=NA_real_, HR_hi=NA_real_,
+            pval=NA_real_, direction="SKIP")
+          next
+        }
+        sub[, E_z_b := scale(energy)[,1]]
+        fit_b <- tryCatch(
+          coxph(Surv(fu_time, event_death) ~ E_z_b + age_at_lm + factor(sex_code),
+                data = sub),
+          error = function(e) NULL)
+        if (is.null(fit_b)) {
+          basin_mort[[paste0(disease,"_",b)]] <- data.table(
+            disease=disease, basin_id=b, N=nrow(sub), deaths=d_b,
+            censored=nrow(sub)-d_b,
+            HR=NA_real_, HR_lo=NA_real_, HR_hi=NA_real_,
+            pval=NA_real_, direction="ERROR")
+          next
+        }
+        s_b <- summary(fit_b)
+        hr_b <- s_b$conf.int["E_z_b",]
+        pv_b <- s_b$coefficients["E_z_b","Pr(>|z|)"]
+        basin_mort[[paste0(disease,"_",b)]] <- data.table(
+          disease=disease, basin_id=b, N=nrow(sub), deaths=d_b,
+          censored=nrow(sub)-d_b,
+          HR=hr_b[1], HR_lo=hr_b[3], HR_hi=hr_b[4],
+          pval=pv_b, direction=ifelse(hr_b[1]<1,"PASS","FAIL"))
+      }
+    }
+  }
+  rm(mort_pop)
+
+  # ==========================================================
+  # HOSPITALIZATION COX (all eligible patients)
+  # ==========================================================
+  n_hosp_events <- sum(landmark$event_hosp)
+
+  if (n_all < 100 || n_hosp_events < 20) {
+    cat(sprintf("  Hosp SKIP: N=%d, events=%d\n", n_all, n_hosp_events))
+    overall_hosp[[disease]] <- data.table(
+      disease = disease, HR = NA_real_, HR_lo = NA_real_, HR_hi = NA_real_,
+      pval = NA_real_, N = n_all, events = n_hosp_events,
+      censored = n_all - n_hosp_events, direction = "SKIP")
+  } else {
+    landmark[, E_z_h := scale(energy)[,1]]
+    fit_h <- tryCatch(
+      coxph(Surv(fu_hosp, event_hosp) ~ E_z_h + age_at_lm + factor(sex_code),
+            data = landmark),
+      error = function(e) NULL)
+
+    if (is.null(fit_h)) {
+      overall_hosp[[disease]] <- data.table(
+        disease = disease, HR = NA_real_, HR_lo = NA_real_, HR_hi = NA_real_,
+        pval = NA_real_, N = n_all, events = n_hosp_events,
+        censored = n_all - n_hosp_events, direction = "ERROR")
+    } else {
+      s_h <- summary(fit_h)
+      hr_h <- s_h$conf.int["E_z_h",]
+      pv_h <- s_h$coefficients["E_z_h","Pr(>|z|)"]
+      dir_h <- ifelse(hr_h[1] < 1, "PASS", "FAIL")
+
+      overall_hosp[[disease]] <- data.table(
+        disease = disease, HR = hr_h[1], HR_lo = hr_h[3], HR_hi = hr_h[4],
+        pval = pv_h, N = n_all, events = n_hosp_events,
+        censored = n_all - n_hosp_events, direction = dir_h)
+
+      cat(sprintf("  Hosp: N=%d, events=%d, HR=%.4f → %s\n",
+                  n_all, n_hosp_events, hr_h[1], dir_h))
+
+      # Per-basin hospitalization Cox
+      for (b in sort(unique(landmark$basin_id))) {
+        sub <- landmark[basin_id == b]
+        ev_b <- sum(sub$event_hosp)
+        if (ev_b < 10) {
+          basin_hosp[[paste0(disease,"_",b)]] <- data.table(
+            disease=disease, basin_id=b, N=nrow(sub), events=ev_b,
+            censored=nrow(sub)-ev_b,
+            HR=NA_real_, HR_lo=NA_real_, HR_hi=NA_real_,
+            pval=NA_real_, direction="SKIP")
+          next
+        }
+        sub[, E_z_hb := scale(energy)[,1]]
+        fit_hb <- tryCatch(
+          coxph(Surv(fu_hosp, event_hosp) ~ E_z_hb + age_at_lm + factor(sex_code),
+                data = sub),
+          error = function(e) NULL)
+        if (is.null(fit_hb)) {
+          basin_hosp[[paste0(disease,"_",b)]] <- data.table(
+            disease=disease, basin_id=b, N=nrow(sub), events=ev_b,
+            censored=nrow(sub)-ev_b,
+            HR=NA_real_, HR_lo=NA_real_, HR_hi=NA_real_,
+            pval=NA_real_, direction="ERROR")
+          next
+        }
+        s_hb <- summary(fit_hb)
+        hr_hb <- s_hb$conf.int["E_z_hb",]
+        pv_hb <- s_hb$coefficients["E_z_hb","Pr(>|z|)"]
+        basin_hosp[[paste0(disease,"_",b)]] <- data.table(
+          disease=disease, basin_id=b, N=nrow(sub), events=ev_b,
+          censored=nrow(sub)-ev_b,
+          HR=hr_hb[1], HR_lo=hr_hb[3], HR_hi=hr_hb[4],
+          pval=pv_hb, direction=ifelse(hr_hb[1]<1,"PASS","FAIL"))
+      }
+    }
   }
 
-  s <- summary(fit)
-  hr <- s$conf.int["E_z", ]
-  pval <- s$coefficients["E_z", "Pr(>|z|)"]
-  direction <- ifelse(hr[1] < 1, "PASS", "FAIL")
+  # ==========================================================
+  # KM CURVES (case study diseases only)
+  # ==========================================================
+  if (disease %in% CASE_DISEASES) {
+    cat("  Generating KM curves...\n")
 
-  overall_results[[disease]] <- data.table(
-    disease = disease, design = "landmark",
-    HR = hr[1], HR_lo = hr[3], HR_hi = hr[4],
-    pval = pval, N = n_final, deaths = n_deaths,
-    direction = direction,
-    n_cohort = n_patients, n_eligible = n_eligible_pts,
-    n_excl_riy = n_excluded_riy, n_excl_died_before = n_died_before,
-    n_excl_left_before = n_left_before,
-    median_fu = median(cox_pop$followup_time),
-    median_obs_to_landmark = median(landmark[kojin_id %in% cox_pop$kojin_id,
-                                             parse_ym(landmark_ym) - parse_ym(observable_start_ym)])
-  )
+    # --- Mortality KM (riyouka=1 subset) ---
+    km_pop <- landmark[shibou_flg_riyouka == 1L]
+    km_pop[, basin_label := paste0("Basin ", basin_id)]
 
-  cat(sprintf("  N=%d, deaths=%d, HR=%.4f [%.4f, %.4f] → %s\n",
-              n_final, n_deaths, hr[1], hr[3], hr[4], direction))
-
-  # --- Per-basin Cox ---
-  basins <- sort(unique(cox_pop$basin_id))
-  for (b in basins) {
-    sub <- cox_pop[basin_id == b]
-    n_b <- nrow(sub)
-    d_b <- sum(sub$event)
-
-    if (d_b < 10) {
-      basin_results[[paste0(disease, "_", b)]] <- data.table(
-        disease = disease, basin_id = b, N = n_b, deaths = d_b,
-        HR = NA_real_, HR_lo = NA_real_, HR_hi = NA_real_,
-        pval = NA_real_, direction = "SKIP"
-      )
-      next
+    survfit_to_dt <- function(sf) {
+      strata_names <- if (!is.null(sf$strata)) {
+        rep(names(sf$strata), sf$strata)
+      } else {
+        rep("All", length(sf$time))
+      }
+      data.table(time = sf$time, surv = sf$surv,
+                 upper = sf$upper, lower = sf$lower,
+                 strata = strata_names)
     }
 
-    sub[, E_z_b := scale(energy)[,1]]
-    fit_b <- tryCatch(
-      coxph(Surv(followup_time, event) ~ E_z_b + age_at_landmark + factor(sex_code),
-            data = sub),
-      error = function(e) NULL
-    )
+    plot_dir <- file.path("plot", disease)
+    dir.create(plot_dir, recursive = TRUE, showWarnings = FALSE)
 
-    if (is.null(fit_b)) {
-      basin_results[[paste0(disease, "_", b)]] <- data.table(
-        disease = disease, basin_id = b, N = n_b, deaths = d_b,
-        HR = NA_real_, HR_lo = NA_real_, HR_hi = NA_real_,
-        pval = NA_real_, direction = "ERROR"
-      )
-      next
+    # Inter-basin KM
+    if (length(unique(km_pop$basin_id)) > 1) {
+      fit_km <- survfit(Surv(fu_time, event_death) ~ basin_label, data = km_pop)
+      km_dt <- survfit_to_dt(fit_km)
+      km_dt[, strata := gsub("basin_label=", "", strata)]
+      pv <- tryCatch({
+        sd <- survdiff(Surv(fu_time, event_death) ~ basin_label, data = km_pop)
+        1 - pchisq(sd$chisq, length(sd$n) - 1)
+      }, error = function(e) NA)
+      pv_label <- if (is.na(pv)) "" else if (pv < 0.001) "p < 0.001" else sprintf("p = %.3f", pv)
+
+      g1 <- ggplot(km_dt, aes(x = time, y = surv, color = strata)) +
+        geom_step(linewidth = 0.8) +
+        labs(title = sprintf("%s — Landmark KM by basin (mortality)",
+                             gsub("_", " ", disease)),
+             subtitle = pv_label,
+             x = "Years from landmark", y = "Survival probability",
+             color = "Basin") +
+        theme_bw(base_size = 12) +
+        theme(legend.position = "bottom") +
+        coord_cartesian(xlim = c(0, min(8, max(km_dt$time))))
+      ggsave(file.path(plot_dir, "km_inter_basin_landmark.png"),
+             plot = g1, width = 8, height = 6, dpi = 200)
+      cat(sprintf("  Written: %s/km_inter_basin_landmark.png\n", plot_dir))
     }
 
-    s_b <- summary(fit_b)
-    hr_b <- s_b$conf.int["E_z_b", ]
-    pval_b <- s_b$coefficients["E_z_b", "Pr(>|z|)"]
-    dir_b <- ifelse(hr_b[1] < 1, "PASS", "FAIL")
-
-    basin_results[[paste0(disease, "_", b)]] <- data.table(
-      disease = disease, basin_id = b, N = n_b, deaths = d_b,
-      HR = hr_b[1], HR_lo = hr_b[3], HR_hi = hr_b[4],
-      pval = pval_b, direction = dir_b
-    )
+    # Per-basin energy tertile KM
+    plots <- list()
+    for (b in sort(unique(km_pop$basin_id))) {
+      sub <- km_pop[basin_id == b]
+      if (nrow(sub) < 50) next
+      brks <- quantile(sub$energy, probs = c(0, 1/3, 2/3, 1), na.rm = TRUE)
+      if (length(unique(brks)) < 4) next
+      sub[, e_tert := cut(energy, breaks = brks,
+        labels = c("Low E", "Mid E", "High E"), include.lowest = TRUE)]
+      fit_b <- survfit(Surv(fu_time, event_death) ~ e_tert, data = sub)
+      km_b <- survfit_to_dt(fit_b)
+      km_b[, strata := gsub("e_tert=", "", strata)]
+      km_b[, basin := sprintf("Basin %d (n=%s)", b, format(nrow(sub), big.mark=","))]
+      plots[[length(plots) + 1]] <- km_b
+    }
+    if (length(plots) > 0) {
+      all_km <- rbindlist(plots)
+      g2 <- ggplot(all_km, aes(x = time, y = surv, color = strata)) +
+        geom_step(linewidth = 0.7) +
+        facet_wrap(~ basin, nrow = 1) +
+        scale_color_manual(values = c("Low E" = "#2166AC", "Mid E" = "#BDBDBD",
+                                       "High E" = "#B2182B")) +
+        labs(x = "Years from landmark", y = "Survival", color = "Energy tertile",
+             title = sprintf("%s — Within-basin energy tertile KM",
+                             gsub("_", " ", disease))) +
+        theme_bw(base_size = 11) +
+        theme(legend.position = "bottom") +
+        coord_cartesian(xlim = c(0, min(8, max(all_km$time))))
+      ggsave(file.path(plot_dir, "km_per_basin_landmark.png"), plot = g2,
+             width = 4 * min(length(plots), 4), height = 5, dpi = 200)
+      cat(sprintf("  Written: %s/km_per_basin_landmark.png\n", plot_dir))
+    }
+    rm(km_pop)
   }
 
-  rm(pmap, landmark, cox_pop)
-  gc()
-
+  rm(pmap, landmark); gc()
   t1 <- proc.time()["elapsed"]
   cat(sprintf("  done in %.0fs\n", t1 - t0))
 }
@@ -316,79 +489,54 @@ for (di in seq_along(disease_list)) {
 # STEP 5: Save results
 # ============================================================
 cat("\n=== Saving results ===\n")
+mort_dt <- rbindlist(overall_mort, fill = TRUE)
+hosp_dt <- rbindlist(overall_hosp, fill = TRUE)
+basin_mort_dt <- rbindlist(basin_mort, fill = TRUE)
+basin_hosp_dt <- rbindlist(basin_hosp, fill = TRUE)
 
-overall_dt <- rbindlist(overall_results, fill = TRUE)
-basin_dt <- rbindlist(basin_results, fill = TRUE)
+fwrite(mort_dt, "summary/landmark_all_diseases_overall.tsv", sep = "\t")
+fwrite(hosp_dt, "summary/landmark_all_diseases_hosp_overall.tsv", sep = "\t")
+fwrite(basin_mort_dt, "summary/landmark_all_diseases_per_basin.tsv", sep = "\t")
+fwrite(basin_hosp_dt, "summary/landmark_all_diseases_hosp_per_basin.tsv", sep = "\t")
 
-fwrite(overall_dt, file.path(SCRATCH, "landmark_all_diseases_overall.tsv"), sep = "\t")
-fwrite(basin_dt, file.path(SCRATCH, "landmark_all_diseases_per_basin.tsv"), sep = "\t")
-
-cat(sprintf("\nOverall summary:\n"))
-cat(sprintf("  PASS: %d diseases\n", sum(overall_dt$direction == "PASS", na.rm = TRUE)))
-cat(sprintf("  FAIL: %d diseases\n", sum(overall_dt$direction == "FAIL", na.rm = TRUE)))
-cat(sprintf("  SKIP: %d diseases\n", sum(overall_dt$direction == "SKIP", na.rm = TRUE)))
-cat(sprintf("  ERROR: %d diseases\n", sum(overall_dt$direction == "ERROR", na.rm = TRUE)))
-
-cat(sprintf("\nPer-basin summary:\n"))
-cat(sprintf("  PASS basins: %d\n", sum(basin_dt$direction == "PASS", na.rm = TRUE)))
-cat(sprintf("  FAIL basins: %d\n", sum(basin_dt$direction == "FAIL", na.rm = TRUE)))
+cat(sprintf("\nMortality: PASS=%d, FAIL=%d, SKIP=%d\n",
+    sum(mort_dt$direction == "PASS", na.rm = TRUE),
+    sum(mort_dt$direction == "FAIL", na.rm = TRUE),
+    sum(mort_dt$direction == "SKIP", na.rm = TRUE)))
+cat(sprintf("Hospitalization: PASS=%d, FAIL=%d, SKIP=%d\n",
+    sum(hosp_dt$direction == "PASS", na.rm = TRUE),
+    sum(hosp_dt$direction == "FAIL", na.rm = TRUE),
+    sum(hosp_dt$direction == "SKIP", na.rm = TRUE)))
 
 # ============================================================
-# STEP 6: Write pipeline-compatible output files
+# STEP 6: Post-process — atlas_summary.tsv
 # ============================================================
-cat("\n=== Writing pipeline-compatible output ===\n")
+cat("\n=== Building atlas_summary.tsv ===\n")
 
-for (di in seq_len(nrow(overall_dt))) {
-  row <- overall_dt[di]
-  disease <- row$disease
-  if (row$direction %in% c("SKIP", "ERROR")) next
+# Per-basin majority criterion for mortality (basin_id > 0 only, already guaranteed)
+pb_mort <- basin_mort_dt[direction %in% c("PASS", "FAIL"),
+  .(n_pass = sum(direction == "PASS"), n_basins = .N), by = disease]
+pb_mort[, majority_pass := n_pass >= ceiling(n_basins / 2)]
 
-  out_dir <- file.path("output", disease, "all_comorbid", "cox", "7")
-  dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+# Per-basin majority criterion for hospitalization
+pb_hosp <- basin_hosp_dt[direction %in% c("PASS", "FAIL"),
+  .(n_pass_h = sum(direction == "PASS"), n_basins_h = .N), by = disease]
+pb_hosp[, majority_pass_h := n_pass_h >= ceiling(n_basins_h / 2)]
 
-  # Per-basin data for this disease
-  bdt <- basin_dt[disease == row$disease & !is.na(HR)]
-  n_basins <- nrow(bdt)
-  largest_frac <- if (n_basins > 0) max(bdt$N) / row$N else NA_real_
+# Build atlas
+atlas <- mort_dt[direction %in% c("PASS", "FAIL")]
+atlas <- merge(atlas, pb_mort[, .(disease, n_basins, majority_pass)],
+               by = "disease", all.x = TRUE)
+atlas <- merge(atlas, pb_hosp[, .(disease, majority_pass_h)],
+               by = "disease", all.x = TRUE)
 
-  # Overall sanity check (pipeline format)
-  sc <- data.table(
-    disease_family = disease,
-    dim = 7L,
-    outcome = "mortality",
-    HR = row$HR,
-    HR_lower = row$HR_lo,
-    HR_upper = row$HR_hi,
-    pvalue = row$pval,
-    direction_ok = row$direction == "PASS",
-    n_patients = row$N,
-    n_basins = n_basins,
-    largest_basin_frac = largest_frac
-  )
-  fwrite(sc, file.path(out_dir, "energy_sanity_check.tsv"), sep = "\t")
+# Largest basin fraction
+atlas[, largest_basin_frac := sapply(disease, function(d) {
+  bdt <- basin_mort_dt[disease == d & !is.na(HR)]
+  a_n <- mort_dt[disease == d, N]
+  if (nrow(bdt) > 0 && length(a_n) > 0 && a_n > 0) max(bdt$N) / a_n else NA_real_
+})]
 
-  # Per-basin sanity check (pipeline format)
-  if (n_basins > 0) {
-    pb <- data.table(
-      disease_family = disease,
-      basin_id = bdt$basin_id,
-      outcome = "mortality",
-      HR = bdt$HR,
-      HR_lower = bdt$HR_lo,
-      HR_upper = bdt$HR_hi,
-      pvalue = bdt$pval,
-      direction_ok = bdt$direction == "PASS",
-      n_patients = bdt$N,
-      n_deaths = bdt$deaths,
-      death_rate = bdt$deaths / bdt$N,
-      note = ""
-    )
-    fwrite(pb, file.path(out_dir, "energy_sanity_check_per_basin.tsv"), sep = "\t")
-  }
-}
-
-# Atlas summary (pipeline format)
-atlas <- overall_dt[direction %in% c("PASS", "FAIL")]
 atlas_out <- data.table(
   disease_family = atlas$disease,
   dim = 7L,
@@ -397,18 +545,48 @@ atlas_out <- data.table(
   HR_lower = atlas$HR_lo,
   HR_upper = atlas$HR_hi,
   pvalue = atlas$pval,
-  direction_ok = atlas$direction == "PASS",
   n_patients = atlas$N,
-  n_basins = sapply(atlas$disease, function(d) {
-    sum(!is.na(basin_dt[disease == d, HR]))
-  }),
-  largest_basin_frac = sapply(atlas$disease, function(d) {
-    bdt <- basin_dt[disease == d & !is.na(HR)]
-    a_n <- overall_dt[disease == d, N]
-    if (nrow(bdt) > 0 && length(a_n) > 0) max(bdt$N) / a_n else NA_real_
-  })
+  n_basins = atlas$n_basins,
+  largest_basin_frac = atlas$largest_basin_frac,
+  direction_ok = atlas$majority_pass
 )
-fwrite(atlas_out, "summary/atlas_summary.tsv", sep = "\t")
-cat(sprintf("  Wrote atlas_summary.tsv: %d diseases\n", nrow(atlas_out)))
 
-cat("\n=== ALL DISEASES COMPLETE ===\n")
+fwrite(atlas_out, "summary/atlas_summary.tsv", sep = "\t")
+cat(sprintf("  atlas_summary.tsv: %d diseases\n", nrow(atlas_out)))
+cat(sprintf("  Mortality per-basin majority: PASS=%d, FAIL=%d\n",
+    sum(atlas_out$direction_ok == TRUE, na.rm = TRUE),
+    sum(atlas_out$direction_ok == FALSE, na.rm = TRUE)))
+
+# Hospitalization per-basin majority summary
+n_hosp_pass <- sum(pb_hosp$majority_pass_h, na.rm = TRUE)
+n_hosp_fail <- sum(!pb_hosp$majority_pass_h, na.rm = TRUE)
+cat(sprintf("  Hospitalization per-basin majority: PASS=%d, FAIL=%d\n",
+    n_hosp_pass, n_hosp_fail))
+
+# ============================================================
+# STEP 7: Atlas heatmap
+# ============================================================
+cat("\n=== Generating atlas heatmap ===\n")
+sm <- fread("summary/atlas_summary.tsv")
+sm[, direction_label := fifelse(direction_ok, "PASS", "FAIL")]
+sm[, hr_label := sprintf("%.3f", HR)]
+sm[, disease_family := factor(disease_family,
+     levels = rev(sort(unique(disease_family))))]
+
+g_atlas <- ggplot(sm, aes(x = outcome, y = disease_family, fill = direction_label)) +
+  geom_tile(color = "white", linewidth = 1) +
+  geom_text(aes(label = hr_label), size = 3) +
+  scale_fill_manual(
+    values = c(PASS = "#4CAF50", FAIL = "#F44336"),
+    name = "Per-basin majority"
+  ) +
+  labs(title = "Energy Cox Sanity Check Atlas (Landmark Design)",
+       subtitle = "Overall HR; color = per-basin majority (HR<1 in ≥half basins, basin_id>0)",
+       x = NULL, y = NULL) +
+  theme_minimal(base_size = 11) +
+  theme(axis.text.y = element_text(size = 8))
+
+ggsave("plot/atlas_heatmap.png", g_atlas, width = 8, height = 16, dpi = 200)
+cat("  Written: plot/atlas_heatmap.png\n")
+
+cat("\n=== ALL COMPLETE ===\n")

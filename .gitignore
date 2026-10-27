@@ -9,6 +9,8 @@ summary/*
 !summary/atlas_summary.tsv
 !summary/landmark_all_diseases_overall.tsv
 !summary/landmark_all_diseases_per_basin.tsv
+!summary/landmark_all_diseases_hosp_overall.tsv
+!summary/landmark_all_diseases_hosp_per_basin.tsv
 logs/
 benchmarks/
 .snakemake/
