@@ -1,0 +1,45 @@
+figure	panel	description	input_tsv	generation_script	output_image	panels_dir	legend_note	author_assembly
+Fig01	-	Workflow overview	-	(manual design)	plot/Figures/Fig01/Fig01_workflow.png	-	Numbers: 27/51 mortality, 35/51 hosp, 1-4 basins	Yes
+Fig02	a	PCA: diabetes PC1×PC2 colored by age	output/diabetes/all_comorbid/pca/7/Scores.mm	(pipeline)	plot/Figures/Fig02/panels/Fig02a_diabetes_PC1_PC2_age.png	Yes	-	Yes
+Fig02	b	PCA: UTI PC1×PC7 colored by sex	output/urinary_tract_infection/all_comorbid/pca/7/Scores.mm	(pipeline)	plot/Figures/Fig02/panels/Fig02b_uti_PC1_PC7_sex.png	Yes	-	Yes
+Fig02	c	Cumulative variance explained	output/*/all_comorbid/pca/7/	(pipeline)	plot/Figures/Fig02/panels/Fig02c_cumulative_variance.png	Yes	-	Yes
+Fig02	d	PC-age/sex correlation heatmap	summary/pc_age_sex_energy_correlations.tsv	(pipeline)	plot/Figures/Fig02/panels/Fig02d_pc_correlation_vertical.png	Yes	-	Yes
+Fig03	-	Atlas overview (51 landscapes)	summary/atlas_summary.tsv	src/plot_landscape_atlas.R	plot/Figures/Fig03/Fig03_atlas_overview.png	-	-	No
+Fig04	-	Jaccard clustering heatmap	summary/jaccard_all_basins.tsv	scratchpad/jaccard_annotated_v4.py	plot/Figures/Fig04/Fig04_jaccard_clustering.png	-	Distance=1-Jaccard, average linkage, optimal leaf ordering	No
+Fig05	a	Trajectory: state occupancy by distance-to-death	plot/*/trajectories_dead.tsv	src/trajectory_to_death.R	plot/Figures/Fig05/panels/Fig05a_trajectory_overview.png	Yes	-	Yes
+Fig05	b	Trajectory: basin-start patients	plot/Figures/Fig05/Fig05b_trajectory_basin_start.tsv	scratchpad/trajectory_classify.R	plot/Figures/Fig05/panels/Fig05b_trajectory_basin_start.png	Yes	-	Yes
+Fig05	c	Trajectory: non-basin-start patients	plot/Figures/Fig05/Fig05c_trajectory_nonbasin_start.tsv	scratchpad/trajectory_classify.R	plot/Figures/Fig05/panels/Fig05c_trajectory_nonbasin_start.png	Yes	-	Yes
+Fig06	a	Thyroid: Basin 3 vs 4 logitdiff bar chart	plot/thyroid_disorder/tagcloud_scored/logitdiff/basin_code_logitdiff.tsv	scratchpad/thyroid_fig4a_final.R	plot/Figures/Fig06/panels/Fig06a_thyroid_basin3_vs_4.png	Yes	freq_in denominator = observation windows	Yes
+Fig06	b	Thyroid: inter-basin KM	output/thyroid_disorder/all_comorbid/cox/7/	(pipeline)	plot/Figures/Fig06/panels/Fig06b_thyroid_km_inter_basin.png	Yes	Landmark design	Yes
+Fig06	c	Thyroid: disconnectivity graph	output/thyroid_disorder/all_comorbid/landscaper/7/	src/plot_landscape_atlas.R	plot/Figures/Fig06/panels/Fig06c_thyroid_disorder_discon.png	Yes	-	Yes
+Fig06	d	Thyroid: sankey	output/thyroid_disorder/all_comorbid/cox/7/stepwise_transition.tsv	scratchpad/fig_sankey_tb.R	plot/Figures/Fig06/panels/Fig06d_thyroid_disorder_sankey.png	Yes	-	Yes
+Fig07	a	Dementia: paired KM (death+hosp)	output/dementia/all_comorbid/cox/7/	scratchpad/fig06_dementia_paired_km.R	plot/Figures/Fig07/panels/Fig07a_dementia_paired_km.png	Yes	Landmark design; death and hosp have different eligible n	Yes
+Fig07	-	Dementia: mortality landmark KM	output/dementia/all_comorbid/cox/7/	(pipeline)	plot/Figures/Fig07/panels/Fig07_km_mortality_landmark.png	Yes	-	Yes
+Fig07	-	Dementia: hosp per-basin KM	output/dementia/all_comorbid/cox/7/	(pipeline)	plot/Figures/Fig07/panels/Fig07_km_hosp_per_basin.png	Yes	-	Yes
+Fig08	-	Anemia composite	multiple	scratchpad/fig05_06_dynamic_panels_v2.R	plot/Figures/Fig08/panels/Fig08_anemia.png	Yes	-	Yes
+Fig08	a	Transition: dementia	output/dementia/all_comorbid/cox/7/stepwise_transition.tsv	scratchpad/fig_transition_trio.R	plot/Figures/Fig08/panels/Fig08a_transition_dementia.png	Yes	Area-proportional squares	Yes
+Fig08	b	Transition: thyroid	output/thyroid_disorder/all_comorbid/cox/7/stepwise_transition.tsv	scratchpad/fig_transition_trio.R	plot/Figures/Fig08/panels/Fig08b_transition_thyroid.png	Yes	Area-proportional squares	Yes
+Fig08	c	Transition: anemia	output/anemia/all_comorbid/cox/7/stepwise_transition.tsv	scratchpad/fig_transition_trio.R	plot/Figures/Fig08/panels/Fig08c_transition_anemia.png	Yes	Area-proportional squares	Yes
+Fig09	a	Tuberculosis: sankey	output/tuberculosis/all_comorbid/cox/7/stepwise_transition.tsv	scratchpad/fig_sankey_tb.R	plot/Figures/Fig09/panels/Fig09a_sankey_tuberculosis.png	Yes	-	Yes
+Fig09	b	Tuberculosis: PC binary pattern	output/tuberculosis/all_comorbid/landscaper/7/	scratchpad/fig_tb_pcpattern.R	plot/Figures/Fig09/panels/Fig09b_pcpattern.png	Yes	-	Yes
+Fig09	c	Tuberculosis: PC6 loading bar	output/tuberculosis/all_comorbid/pca/7/Eigen_vectors.csv	scratchpad/fig_tb_pc6_loading.R	plot/Figures/Fig09/panels/Fig09c_pc6_loading.png	Yes	-	Yes
+Table1	-	Pattern classification (6 patterns, 51 diseases)	summary/transition_asymmetry_summary.tsv	src/reclassify_table1.py	plot/Figures/Table1_pattern_classification.tsv	-	Boundaries: Sym<0.1, Conv 0.1-0.45, Prog>=0.45	No
+FigS_pattern_space	-	FigS4: transition rate × asymmetry scatter	summary/transition_asymmetry_summary.tsv	src/reclassify_table1.py	plot/Figures/Supplementary/FigS_pattern_space.png	-	Basin 0 excluded, full period	No
+FigS_jaccard_2blocks	-	Jaccard heatmap: 2 large blocks	summary/jaccard_all_basins.tsv	scratchpad/jaccard_annotated_v4.py	plot/Figures/Supplementary/FigS_jaccard_2blocks.png	-	-	No
+FigS_jaccard_allblocks	-	Jaccard heatmap: all sub-blocks	summary/jaccard_all_basins.tsv	scratchpad/jaccard_annotated_v4.py	plot/Figures/Supplementary/FigS_jaccard_allblocks.png	-	-	No
+FigS_jaccard_basin_level	-	Basin-level 93×93 Jaccard heatmap	summary/jaccard_all_basins.tsv	scratchpad/jaccard_annotated_v4.py	plot/Figures/Supplementary/FigS_jaccard_basin_level.png	-	-	No
+FigS_within_disease_jaccard	-	Within-disease basin Jaccard dot plot	summary/jaccard_all_basins.tsv	scratchpad/jaccard_annotated_v4.py	plot/Figures/Supplementary/FigS_within_disease_jaccard.png	-	Between-disease mean reference line	No
+FigS_atlas_hospitalization	-	Atlas overview: hospitalization	summary/atlas_summary.tsv	src/plot_landscape_atlas.R	plot/Figures/Supplementary/FigS_atlas_hospitalization.png	-	-	No
+FigS_death_hosp	-	Mortality vs hospitalization HR scatter	summary/atlas_summary.tsv	(pipeline)	plot/Figures/Supplementary/FigS_death_hosp.png	-	-	No
+FigS_crossdisease_codes	-	Cross-disease code frequency	summary/pc_interpretation_table.tsv	(pipeline)	plot/Figures/Supplementary/FigS_crossdisease_codes.png	-	-	No
+FigS8_sepsis	km_mortality	Sepsis: KM mortality	output/sepsis/all_comorbid/cox/7/	(pipeline)	plot/Figures/Supplementary/FigS8_sepsis_km_mortality.png	-	Landmark design	No
+FigS8_sepsis	km_hosp	Sepsis: KM hospitalization	output/sepsis/all_comorbid/cox/7/	(pipeline)	plot/Figures/Supplementary/FigS8_sepsis_km_hosp.png	-	Landmark design	No
+FigS8_sepsis	tagcloud_B1	Sepsis: basin 1 tagcloud	plot/sepsis/tagcloud_scored/logitdiff/	src/tagcloud_scored.R	plot/Figures/Supplementary/FigS8_sepsis_tagcloud_B1.png	-	Logitdiff scoring	No
+FigS8_sepsis	tagcloud_B2	Sepsis: basin 2 tagcloud	plot/sepsis/tagcloud_scored/logitdiff/	src/tagcloud_scored.R	plot/Figures/Supplementary/FigS8_sepsis_tagcloud_B2.png	-	Logitdiff scoring	No
+FigS8_sepsis	tagcloud_B3	Sepsis: basin 3 tagcloud	plot/sepsis/tagcloud_scored/logitdiff/	src/tagcloud_scored.R	plot/Figures/Supplementary/FigS8_sepsis_tagcloud_B3.png	-	Logitdiff scoring	No
+FigS8_sepsis	traj_heatmap	Sepsis: trajectory heatmap	plot/sepsis/trajectories_dead.tsv	src/trajectory_to_death.R	plot/Figures/Supplementary/FigS8_sepsis_traj_heatmap.png	-	-	No
+FigS8_sepsis	traj_energy	Sepsis: trajectory energy	plot/sepsis/trajectories_dead.tsv	src/trajectory_to_death.R	plot/Figures/Supplementary/FigS8_sepsis_traj_energy.png	-	-	No
+FigS_code_traj	death	Code trajectory: death (4 diseases × basins)	plot/*/trajectories_dead.tsv	src/plot_code_trajectory_stacked.R	plot/Figures/Supplementary/FigS_code_traj_{disease}_B{n}.png	-	a-m=death panels (dementia,thyroid,anemia,tuberculosis)	Yes
+FigS_code_traj	hosp	Code trajectory: hosp (4 diseases × basins)	plot/*/trajectories_dead.tsv	src/plot_code_trajectory_stacked.R	plot/Figures/Supplementary/FigS_code_traj_hosp_{disease}_B{n}.png	-	n-v=hosp panels (dementia,thyroid,anemia,tuberculosis)	Yes
+Fig06_diabetes	-	Supplementary: Diabetes 4-panel (same layout as Fig06)	output/diabetes/all_comorbid/cox/7/	various	plot/Figures/Supplementary/Fig06_diabetes.png	-	-	Yes
+Fig09_death_hosp	-	Supplementary: Death vs hosp scatter	summary/atlas_summary.tsv	scratchpad/fig09b_death_hosp.R	plot/Figures/Supplementary/Fig09_death_vs_hosp_scatter.png	-	-	No

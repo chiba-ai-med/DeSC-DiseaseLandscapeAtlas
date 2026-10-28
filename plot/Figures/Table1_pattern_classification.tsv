@@ -1,7 +1,7 @@
 Pattern	Basins	Cox_direction	Asymmetry	n	Diseases
 Homogeneous	1	Expected	-	10	Breast cancer, Colorectal cancer, Interstitial lung disease, Ischemic heart disease, Liver disease, Lung cancer, Metastatic cancer, Obesity, Stomach cancer, Stroke
 Reversed	1	Reversed	-	7	Autoimmune connective tissue, Cirrhosis/fibrosis, COPD, Gout, Hip fracture, Pancreatic cancer, Tuberculosis
-Symmetric	Multi	Expected	Low (<0.3)	3	CKD, Hypertension, Malnutrition
-Convergent	Multi	Expected	Moderate (0.3-0.6)	4	Atrial fibrillation, Dementia, Heart failure, Sleep disorders
-Progressive	Multi	Expected	High (>0.6)	10	Anemia, Aspiration pneumonia, Asthma, Diabetes, Hematologic malignancy, Inflammatory bowel disease, Malignancy, Osteoarthritis, Osteoporosis, Peptic ulcer
+Symmetric	Multi	Expected	Low (<0.1)	2	CKD, Dementia
+Convergent	Multi	Expected	Moderate (0.1–0.45)	6	Asthma, Atrial fibrillation, Heart failure, Hypertension, Malnutrition, Sleep disorders
+Progressive	Multi	Expected	High (≥0.45)	9	Anemia, Aspiration pneumonia, Diabetes, Hematologic malignancy, Inflammatory bowel disease, Malignancy, Osteoarthritis, Osteoporosis, Peptic ulcer
 Structured reversed	Multi	Reversed	Various	17	Acute renal failure, Anxiety, Benign prostatic hyperplasia, Delirium, Depression, Dyslipidemia, Epilepsy, Liver cancer, Parkinson disease, Pneumonia, Prostate cancer, Rheumatoid arthritis, Schizophrenia, Sepsis, Thyroid disorder, Urinary tract infection, Viral hepatitis
