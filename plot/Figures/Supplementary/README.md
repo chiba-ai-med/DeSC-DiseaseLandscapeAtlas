@@ -2,20 +2,22 @@
 
 ## FigS1. Atlas of hospitalization hazard ratios across 51 disease families
 
-Heatmap of per-basin Cox proportional hazard ratios for hospitalization
-(energy ~ hospitalization + age + sex) across all 51 disease families.
-Companion to Fig. 3, which shows the mortality atlas.
+Scatter plot of observation density versus hospitalization rate across
+51 disease families, with point color indicating per-basin majority
+criterion (HR < 1 in ≥ half of basins). Same format as Fig. 3, which
+shows the mortality atlas. The criterion is satisfied in 35 of 51
+families for hospitalization.
 
 - File: `FigS1_Fig03_atlas_hospitalization.png`
 
 ## FigS2. Asymmetry score versus mean transition rate across ELA behavioral patterns
 
-Scatter plot of mean asymmetry score (x-axis) against mean per-step
-transition rate (y-axis) for all multi-basin diseases. Points are colored
-by the six ELA behavioral patterns defined in Table 1. Natural gaps in
-the asymmetry score distribution (0.02–0.19 and 0.35–0.52) are visible,
-supporting the three-level classification (Symmetric, Convergent,
-Progressive).
+Scatter plot of mean per-step transition rate (x-axis) against mean
+pairwise asymmetry score (y-axis) for all multi-basin diseases (basin 0
+excluded, full observation period). Points are colored by the six
+behavioral categories (C1–C6) defined in Table 1. Natural gaps in the
+asymmetry score distribution (0.02–0.19 and 0.35–0.52) are visible,
+supporting the three-level classification (C3, C4, C5).
 
 - File: `FigS2_Table1_pattern_classification_space.png`
 
@@ -40,17 +42,16 @@ shared comorbidity axes. Supplements Fig. 4.
 
 - File: `FigS4_Fig04_crossdisease_discriminating_codes.png`
 
-## FigS5. Sepsis case study (Structured reversed pattern)
+## FigS5. Sepsis case study (C6)
 
-Supplementary panels for the sepsis cohort as a representative of the
-Structured reversed pattern (multi-basin, reversed Cox direction).
+Supplementary panels for the sepsis cohort as a representative of C6
+(multi-basin, majority criterion not satisfied).
 
 **(a)** Kaplan–Meier survival curves for all-cause mortality, stratified
-by basin membership (Basin 1–3 and non-basin). Energy tertiles within
-each basin are shown in color.
+by basin membership (Basin 1–3 and non-basin), colored by basin.
 
 **(b)** Kaplan–Meier curves for hospitalization, stratified by basin
-membership with energy tertile coloring.
+membership, colored by basin.
 
 **(c)** State occupancy heatmap before death. Rows are the 25 most
 frequent Allstates patterns among deceased patients (n = 61,074), sorted

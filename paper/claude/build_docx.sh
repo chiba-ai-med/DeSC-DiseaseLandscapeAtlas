@@ -21,7 +21,7 @@ sed \
 ![Figure 2d]('"$FIGS"'/Fig02/Fig02d_pc_correlation_vertical.png)\
 ' \
   -e '/^### Figure 3\./i\
-![Figure 3]('"$FIGS"'/Fig03_atlas_overview.png)\
+![Figure 3]('"$FIGS"'/Fig03/Fig03_atlas_overview.png)\
 ' \
   -e '/^### Figure 4\./i\
 ![Figure 4]('"$FIGS"'/Fig04/Fig04_jaccard_clustering.png)\
@@ -34,87 +34,48 @@ sed \
 ![Figure 5c]('"$FIGS"'/Fig05/Fig05c_trajectory_nonbasin_start.png)\
 ' \
   -e '/^### Figure 6\./i\
-![Figure 6]('"$FIGS"'/Fig06/Fig06_thyroid.png)\
+![Figure 6a]('"$FIGS"'/Fig06/Fig06_a_diabetes_logitdiff.png)\
+\
+![Figure 6b]('"$FIGS"'/Fig06/Fig06_b_diabetes_km.png)\
+\
+![Figure 6c]('"$FIGS"'/Fig06/Fig06_c_diabetes_discon.png)\
+\
+![Figure 6d]('"$FIGS"'/Fig06/Fig06_d_diabetes_sankey.png)\
 ' \
   -e '/^### Figure 7\./i\
-![Figure 7]('"$FIGS"'/Fig07/Fig07a_dementia_paired_km.png)\
+![Figure 7a]('"$FIGS"'/Fig07/Fig07_a_dementia_logitdiff.png)\
+\
+![Figure 7b]('"$FIGS"'/Fig07/Fig07_b_dementia_km.png)\
+\
+![Figure 7c]('"$FIGS"'/Fig07/Fig07_comparison.png)\
+\
+![Figure 7d]('"$FIGS"'/Fig07/Fig07_d_dementia_sankey.png)\
 ' \
   -e '/^### Figure 8\./i\
-![Figure 8]('"$FIGS"'/Fig08/Fig08_anemia.png)\
-' \
-  -e '/^### Figure 9\./i\
-![Figure 9]('"$FIGS"'/Fig09/Fig09_tuberculosis.png)\
+![Figure 8a]('"$FIGS"'/Fig08/Fig08_a_tuberculosis_sankey.png)\
+\
+![Figure 8b]('"$FIGS"'/Fig08/Fig08_b_pcpattern.png)\
+\
+![Figure 8c]('"$FIGS"'/Fig08/Fig08_c_pc6_loading.png)\
 ' \
   -e '/^### Figure S1\./i\
-![Figure S1]('"$FIGS"'/FigS_atlas_hospitalization.png)\
+![Figure S1]('"$FIGS"'/Supplementary/FigS1_Fig03_atlas_hospitalization.png)\
 ' \
   -e '/^### Figure S2\./i\
-![Figure S2]('"$FIGS"'/Supplementary/FigS_jaccard_2blocks.png)\
+![Figure S2]('"$FIGS"'/Supplementary/FigS2_Table1_pattern_classification_space.png)\
 ' \
   -e '/^### Figure S3\./i\
-![Figure S3]('"$FIGS"'/Supplementary/FigS_jaccard_basin_level.png)\
+![Figure S3]('"$FIGS"'/Supplementary/FigS3_Fig04_within_disease_basin_similarity.png)\
 ' \
   -e '/^### Figure S4\./i\
-![Figure S4]('"$FIGS"'/Supplementary/FigS_pattern_space.png)\
+![Figure S4]('"$FIGS"'/Supplementary/FigS4_Fig04_crossdisease_discriminating_codes.png)\
 ' \
   -e '/^### Figure S5\./i\
-![Figure S5]('"$FIGS"'/Supplementary/FigS_death_hosp.png)\
-' \
-  -e '/^### Figure S6\./i\
-![Figure S6]('"$FIGS"'/Supplementary/FigS_crossdisease_codes.png)\
-' \
-  -e '/^### Figure S7\./i\
-![Figure S7]('"$FIGS"'/Supplementary/Fig06_diabetes.png)\
-' \
-  -e '/^### Figure S8\./i\
-![Figure S8a: Sepsis KM mortality]('"$FIGS"'/Supplementary/FigS8_sepsis_km_mortality.png)\
+![Figure S5a]('"$FIGS"'/Supplementary/FigS5_sepsis_km_mortality.png)\
 \
-![Figure S8b: Sepsis KM hosp]('"$FIGS"'/Supplementary/FigS8_sepsis_km_hosp.png)\
+![Figure S5b]('"$FIGS"'/Supplementary/FigS5_sepsis_km_hospitalization.png)\
 \
-![Figure S8c: Sepsis tagcloud B1]('"$FIGS"'/Supplementary/FigS8_sepsis_tagcloud_B1.png)\
-\
-![Figure S8d: Sepsis tagcloud B2]('"$FIGS"'/Supplementary/FigS8_sepsis_tagcloud_B2.png)\
-\
-![Figure S8e: Sepsis tagcloud B3]('"$FIGS"'/Supplementary/FigS8_sepsis_tagcloud_B3.png)\
-\
-![Figure S8f: Sepsis trajectory]('"$FIGS"'/Supplementary/FigS8_sepsis_traj_heatmap.png)\
-' \
-  -e '/^### Figure S9\./i\
-![Figure S9a: Dementia B1 death]('"$FIGS"'/Supplementary/FigS_code_traj_dementia_B1.png)\
-\
-![Figure S9b: Dementia B2 death]('"$FIGS"'/Supplementary/FigS_code_traj_dementia_B2.png)\
-\
-![Figure S9c: Thyroid B1 death]('"$FIGS"'/Supplementary/FigS_code_traj_thyroid_disorder_B1.png)\
-\
-![Figure S9d: Thyroid B2 death]('"$FIGS"'/Supplementary/FigS_code_traj_thyroid_disorder_B2.png)\
-\
-![Figure S9e: Thyroid B3 death]('"$FIGS"'/Supplementary/FigS_code_traj_thyroid_disorder_B3.png)\
-\
-![Figure S9f: Thyroid B4 death]('"$FIGS"'/Supplementary/FigS_code_traj_thyroid_disorder_B4.png)\
-\
-![Figure S9g: Anemia B1 death]('"$FIGS"'/Supplementary/FigS_code_traj_anemia_B1.png)\
-\
-![Figure S9h: Anemia B3 death]('"$FIGS"'/Supplementary/FigS_code_traj_anemia_B3.png)\
-\
-![Figure S9i: TB B1 death]('"$FIGS"'/Supplementary/FigS_code_traj_tuberculosis_B1.png)\
-\
-![Figure S9j: Dementia B1 hosp]('"$FIGS"'/Supplementary/FigS_code_traj_hosp_dementia_B1.png)\
-\
-![Figure S9k: Dementia B2 hosp]('"$FIGS"'/Supplementary/FigS_code_traj_hosp_dementia_B2.png)\
-\
-![Figure S9l: Thyroid B1 hosp]('"$FIGS"'/Supplementary/FigS_code_traj_hosp_thyroid_disorder_B1.png)\
-\
-![Figure S9m: Thyroid B2 hosp]('"$FIGS"'/Supplementary/FigS_code_traj_hosp_thyroid_disorder_B2.png)\
-\
-![Figure S9n: Thyroid B3 hosp]('"$FIGS"'/Supplementary/FigS_code_traj_hosp_thyroid_disorder_B3.png)\
-\
-![Figure S9o: Thyroid B4 hosp]('"$FIGS"'/Supplementary/FigS_code_traj_hosp_thyroid_disorder_B4.png)\
-\
-![Figure S9p: Anemia B1 hosp]('"$FIGS"'/Supplementary/FigS_code_traj_hosp_anemia_B1.png)\
-\
-![Figure S9q: Anemia B3 hosp]('"$FIGS"'/Supplementary/FigS_code_traj_hosp_anemia_B3.png)\
-\
-![Figure S9r: TB B1 hosp]('"$FIGS"'/Supplementary/FigS_code_traj_hosp_tuberculosis_B1.png)\
+![Figure S5c]('"$FIGS"'/Supplementary/FigS5_sepsis_trajectory_heatmap.png)\
 ' \
   manuscript.md > "$TMP_MD"
 
