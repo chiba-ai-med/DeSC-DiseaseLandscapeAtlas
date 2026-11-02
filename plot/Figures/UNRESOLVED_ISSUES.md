@@ -16,14 +16,9 @@ Status as of 2026-11-02.
 10. **Fig07_comparison.png panel titles → C3–C5**: Dementia (C3), Heart Failure (C4), Diabetes (C5). All cell values unchanged. Script: `src/fig07_transition_comparison.R`.
 11. **Fig06_a Basin 2 HR label corrected**: 1.17 → 1.19 (per_basin_mortality_summary.tsv landmark HR = 1.193). Script: `src/fig06a_diabetes_basin1_vs_2.R`.
 12. **Fig06_b replaced with landmark KM**: landmark_cohort.tsv (fu_time from landmark window end). n=1,839,848. Basin separation clear, n values match per_basin_mortality_summary.tsv. Source: `paper/claude/review_candidates/fig06b_landmark_km.R`.
-
-## Author action items — specific changes needed
-
-### 13. Fig01 workflow numbers
-
-Numbers 27/51, 35/51, 1–4 basins confirmed from data — no change needed. Author should verify these appear correctly on the workflow diagram image.
+13. **Fig01 workflow numbers verified**: 51 disease groups, 1–4 basins, 27/51 mortality, 35/51 hospitalization, 128 states, 7 PCs — all confirmed correct.
 
 ## Notes
 
+- All figure-level issues resolved. Remaining work: rebuild manuscript.docx with corrected images.
 - Fig 6/7/8 composites: author composes multi-panel figures in Keynote from individual panels in Fig06/, Fig07/, Fig08/
-- Current manuscript.docx contains updated text but embeds the pre-correction figure images. It is a review draft, not a submission-ready build. After author completes remaining items, the Word should be rebuilt.
