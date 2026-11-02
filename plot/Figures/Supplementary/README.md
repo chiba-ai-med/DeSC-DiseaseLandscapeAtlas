@@ -2,11 +2,14 @@
 
 ## FigS1. Atlas of hospitalization hazard ratios across 51 disease families
 
-Scatter plot of observation density versus hospitalization rate across
-51 disease families, with point color indicating per-basin majority
-criterion (HR < 1 in ≥ half of basins). Same format as Fig. 3, which
-shows the mortality atlas. The criterion is satisfied in 35 of 51
-families for hospitalization.
+Scatter plot of observation density (x-axis) versus death rate (y-axis)
+across 51 disease families, with point color indicating per-basin
+majority criterion for hospitalization (HR < 1 in ≥ half of basins;
+blue = satisfied, red = not satisfied) and point size reflecting
+|log(HR)| from the hospitalization Cox model. Same axes as Fig. 3;
+differs only in the endpoint used for point color and size
+(hospitalization instead of mortality). The criterion is satisfied
+in 35 of 51 families.
 
 - File: `FigS1_Fig03_atlas_hospitalization.png`
 
@@ -48,10 +51,11 @@ Supplementary panels for the sepsis cohort as a representative of C6
 (multi-basin, majority criterion not satisfied).
 
 **(a)** Kaplan–Meier survival curves for all-cause mortality, stratified
-by basin membership (Basin 1–3 and non-basin), colored by basin.
+by basin membership (Basin 1–3; n = 132,559), colored by basin.
 
 **(b)** Kaplan–Meier curves for hospitalization, stratified by basin
-membership, colored by basin.
+membership (Basin 1–3; n = 369,717, excluding pre-landmark admissions),
+colored by basin.
 
 **(c)** State occupancy heatmap before death. Rows are the 25 most
 frequent Allstates patterns among deceased patients (n = 61,074), sorted

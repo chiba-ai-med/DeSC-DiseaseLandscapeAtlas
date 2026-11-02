@@ -12,13 +12,7 @@ sed \
 ![Figure 1]('"$FIGS"'/Fig01/Fig01_workflow.png)\
 ' \
   -e '/^### Figure 2\./i\
-![Figure 2a]('"$FIGS"'/Fig02/Fig02a_diabetes_PC1_PC2_age.png)\
-\
-![Figure 2b]('"$FIGS"'/Fig02/Fig02b_uti_PC1_PC7_sex.png)\
-\
-![Figure 2c]('"$FIGS"'/Fig02/Fig02c_cumulative_variance.png)\
-\
-![Figure 2d]('"$FIGS"'/Fig02/Fig02d_pc_correlation_vertical.png)\
+![Figure 2]('"$FIGS"'/Fig02/Fig02_pca.png)\
 ' \
   -e '/^### Figure 3\./i\
 ![Figure 3]('"$FIGS"'/Fig03/Fig03_atlas_overview.png)\
@@ -27,11 +21,7 @@ sed \
 ![Figure 4]('"$FIGS"'/Fig04/Fig04_jaccard_clustering.png)\
 ' \
   -e '/^### Figure 5\./i\
-![Figure 5a]('"$FIGS"'/Fig05/Fig05a_trajectory_overview.png)\
-\
-![Figure 5b]('"$FIGS"'/Fig05/Fig05b_trajectory_basin_start.png)\
-\
-![Figure 5c]('"$FIGS"'/Fig05/Fig05c_trajectory_nonbasin_start.png)\
+![Figure 5]('"$FIGS"'/Fig05/Fig05_trajectory.png)\
 ' \
   -e '/^### Figure 6\./i\
 ![Figure 6a]('"$FIGS"'/Fig06/Fig06_a_diabetes_logitdiff.png)\
