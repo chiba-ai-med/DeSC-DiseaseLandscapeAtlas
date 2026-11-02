@@ -27,7 +27,7 @@ b1[, label := paste0(truncate_label(en_label), " (", code, ")")]
 b2[, label := paste0(truncate_label(en_label), " (", code, ")")]
 
 b1[, basin := sprintf("Basin 1  HR=0.84 (n=%s)", format(n1, big.mark = ","))]
-b2[, basin := sprintf("Basin 2  HR=1.17 (n=%s)", format(n2, big.mark = ","))]
+b2[, basin := sprintf("Basin 2  HR=1.19 (n=%s)", format(n2, big.mark = ","))]
 
 b1[, label := factor(label, levels = rev(label))]
 b2[, label := factor(label, levels = rev(label))]
@@ -35,7 +35,7 @@ b2[, label := factor(label, levels = rev(label))]
 combined <- rbindlist(list(b1, b2))
 combined[, basin := factor(basin, levels = c(
   sprintf("Basin 1  HR=0.84 (n=%s)", format(n1, big.mark = ",")),
-  sprintf("Basin 2  HR=1.17 (n=%s)", format(n2, big.mark = ","))))]
+  sprintf("Basin 2  HR=1.19 (n=%s)", format(n2, big.mark = ","))))]
 
 sz <- 16
 
@@ -62,6 +62,6 @@ g <- ggplot(combined, aes(x = label, y = score, fill = freq_in)) +
         plot.background = element_rect(fill = "white", color = NA))
 
 fig_h <- (1.5 + 0.7 * top_n) * 0.8
-out <- file.path(base, "plot/Figures/Fig06/Fig06a_diabetes_basin1_vs_2.png")
+out <- file.path(base, "plot/Figures/Fig06/Fig06_a_diabetes_logitdiff.png")
 ggsave(out, g, width = 16 * 0.8, height = fig_h, dpi = 300, bg = "white")
 cat(sprintf("Written: %s\n", out))

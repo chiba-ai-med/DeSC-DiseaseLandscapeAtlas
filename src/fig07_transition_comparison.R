@@ -6,9 +6,9 @@ suppressPackageStartupMessages({
 base <- "/home/koki/dev/DeSC-DiseaseLandscapeAtlas"
 
 diseases <- c(
-  "dementia"      = "Dementia\n(Symmetric)",
-  "heart_failure" = "Heart Failure\n(Convergent)",
-  "diabetes"      = "Diabetes\n(Progressive)"
+  "dementia"      = "Dementia\n(C3)",
+  "heart_failure" = "Heart Failure\n(C4)",
+  "diabetes"      = "Diabetes\n(C5)"
 )
 
 all_dt <- list()
