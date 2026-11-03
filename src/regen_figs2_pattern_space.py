@@ -111,11 +111,11 @@ ax.text(ax.get_xlim()[1] * 0.95, 0.65, 'C5', ha='right', va='center',
 ax.set_xlabel('Per-step transition rate (%)', fontsize=14)
 ax.set_ylabel('Mean transition asymmetry', fontsize=14)
 ax.set_title('Multi-basin disease classification\n(basin 0 excluded, full observation period)', fontsize=16)
-ax.legend(fontsize=11, loc='upper left')
+ax.legend(fontsize=11, loc='lower left')
 ax.tick_params(labelsize=11)
 
 plt.tight_layout()
-out_path = "plot/Figures/Supplementary/FigS2_Table1_pattern_classification_space.png"
+out_path = "plot/Figures/Supplementary/FigS2_pattern_space.png"
 fig.savefig(out_path, dpi=200, bbox_inches='tight', facecolor='white')
 out_pdf = out_path.replace('.png', '.pdf')
 fig.savefig(out_pdf, bbox_inches='tight', facecolor='white')

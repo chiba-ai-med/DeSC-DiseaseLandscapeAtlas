@@ -7,6 +7,7 @@ FIGS=../../plot/Figures
 TMP_MD=$(mktemp /tmp/manuscript_with_figs_XXXXXX.md)
 
 # Insert figure images before each figure legend
+# Fig 5–8: author-composed single images (not individual panels)
 sed \
   -e '/^### Figure 1\./i\
 ![Figure 1]('"$FIGS"'/Fig01/Fig01_workflow.png)\
@@ -24,38 +25,22 @@ sed \
 ![Figure 5]('"$FIGS"'/Fig05/Fig05_trajectory.png)\
 ' \
   -e '/^### Figure 6\./i\
-![Figure 6a]('"$FIGS"'/Fig06/Fig06_a_diabetes_logitdiff.png)\
-\
-![Figure 6b]('"$FIGS"'/Fig06/Fig06_b_diabetes_km.png)\
-\
-![Figure 6c]('"$FIGS"'/Fig06/Fig06_c_diabetes_discon.png)\
-\
-![Figure 6d]('"$FIGS"'/Fig06/Fig06_d_diabetes_sankey.png)\
+![Figure 6]('"$FIGS"'/Fig06/Fig06_diabetes.png)\
 ' \
   -e '/^### Figure 7\./i\
-![Figure 7a]('"$FIGS"'/Fig07/Fig07_a_dementia_logitdiff.png)\
-\
-![Figure 7b]('"$FIGS"'/Fig07/Fig07_b_dementia_km.png)\
-\
-![Figure 7c]('"$FIGS"'/Fig07/Fig07_comparison.png)\
-\
-![Figure 7d]('"$FIGS"'/Fig07/Fig07_d_dementia_sankey.png)\
+![Figure 7]('"$FIGS"'/Fig07/Fig07_dementia.png)\
 ' \
   -e '/^### Figure 8\./i\
-![Figure 8a]('"$FIGS"'/Fig08/Fig08_a_tuberculosis_sankey.png)\
-\
-![Figure 8b]('"$FIGS"'/Fig08/Fig08_b_pcpattern.png)\
-\
-![Figure 8c]('"$FIGS"'/Fig08/Fig08_c_pc6_loading.png)\
+![Figure 8]('"$FIGS"'/Fig08/Fig08.png)\
 ' \
   -e '/^### Figure S1\./i\
 ![Figure S1]('"$FIGS"'/Supplementary/FigS1_Fig03_atlas_hospitalization.png)\
 ' \
   -e '/^### Figure S2\./i\
-![Figure S2]('"$FIGS"'/Supplementary/FigS2_Table1_pattern_classification_space.png)\
+![Figure S2]('"$FIGS"'/Supplementary/FigS2_pattern_space.png)\
 ' \
   -e '/^### Figure S3\./i\
-![Figure S3]('"$FIGS"'/Supplementary/FigS3_Fig04_within_disease_basin_similarity.png)\
+![Figure S3]('"$FIGS"'/Supplementary/FigS3_basin_similarity.png)\
 ' \
   -e '/^### Figure S4\./i\
 ![Figure S4]('"$FIGS"'/Supplementary/FigS4_Fig04_crossdisease_discriminating_codes.png)\
