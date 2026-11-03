@@ -46,11 +46,13 @@ sed \
 ![Figure S4]('"$FIGS"'/Supplementary/FigS4_Fig04_crossdisease_discriminating_codes.png)\
 ' \
   -e '/^### Figure S5\./i\
-![Figure S5a]('"$FIGS"'/Supplementary/FigS5_sepsis_km_mortality.png)\
-\
-![Figure S5b]('"$FIGS"'/Supplementary/FigS5_sepsis_km_hospitalization.png)\
-\
-![Figure S5c]('"$FIGS"'/Supplementary/FigS5_sepsis_trajectory_heatmap.png)\
+![Figure S5]('"$FIGS"'/Supplementary/FigS5_sepsis_mortality.png)\
+' \
+  -e '/^### Figure S6\./i\
+![Figure S6]('"$FIGS"'/Supplementary/FigS6_sepsis_hospitalization.png)\
+' \
+  -e '/^### Figure S7\./i\
+![Figure S7]('"$FIGS"'/Supplementary/FigS7_sepsis_trajectory.png)\
 ' \
   manuscript.md > "$TMP_MD"
 

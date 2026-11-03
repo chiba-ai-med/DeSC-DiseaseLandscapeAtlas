@@ -374,6 +374,14 @@ Dot plot of pairwise Jaccard similarity between basins within each multi-basin d
 
 Heatmap of the top 10 comorbidity codes with the highest mean basin spread (difference in prevalence between the most- and least-enriched basins) across multi-basin diseases. Values are spread in percentage points. Codes such as unspecified diabetes mellitus and chronic periodontitis discriminate basins across many diseases, suggesting shared comorbidity axes. Supplements Figure 4.
 
-### Figure S5. Sepsis case study (C6).
+### Figure S5. Sepsis — Kaplan–Meier survival curves for all-cause mortality (C6).
 
-Supplementary panels for the sepsis cohort as a representative of C6 (multi-basin, majority criterion not satisfied). (a) Kaplan–Meier survival curves for all-cause mortality, stratified by basin membership (Basin 1–3; n = 132,559). (b) Kaplan–Meier curves for hospitalization, stratified by basin membership (Basin 1–3; n = 369,717, excluding pre-landmark admissions). (c) State occupancy heatmap before death. Rows are the 25 most frequent Allstates patterns among deceased patients (n = 61,074), sorted by peak timing (states that predominate earlier in the trajectory appear at top; states concentrated near death appear at bottom). Star (★) marks basin states.
+Kaplan–Meier survival curves for all-cause mortality in the sepsis cohort, a representative of C6 (multi-basin, majority criterion not satisfied), stratified by basin membership (Basin 1–3; n = 132,559).
+
+### Figure S6. Sepsis — Kaplan–Meier curves for disease-specific hospitalization (C6).
+
+Kaplan–Meier curves for disease-specific hospitalization in the sepsis cohort, stratified by basin membership (Basin 1–3; n = 369,717, excluding pre-landmark admissions).
+
+### Figure S7. Sepsis — state occupancy heatmap before death (C6).
+
+State occupancy heatmap before death in the sepsis cohort. Rows are the 25 most frequent Allstates patterns among deceased patients (n = 61,074), sorted by peak timing (states that predominate earlier in the trajectory appear at top; states concentrated near death appear at bottom). Star (★) marks basin states.
