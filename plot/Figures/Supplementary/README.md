@@ -22,7 +22,8 @@ behavioral categories (C1–C6) defined in Table 1. Natural gaps in the
 asymmetry score distribution (0.02–0.19 and 0.35–0.52) are visible,
 supporting the three-level classification (C3, C4, C5).
 
-- File: `FigS2_Table1_pattern_classification_space.png`
+- File: `FigS2_pattern_space.png`
+- Script: `src/regen_figs2_pattern_space.py`
 
 ## FigS3. Within-disease basin-to-basin Jaccard similarity
 
@@ -32,7 +33,8 @@ per basin. Higher similarity indicates that basins share comorbidity
 profiles; lower similarity indicates clinically distinct subgroups.
 Supplements Fig. 4.
 
-- File: `FigS3_Fig04_within_disease_basin_similarity.png`
+- File: `FigS3_basin_similarity.png`
+- Script: `src/regen_figs3_within_disease_jaccard.R`
 
 ## FigS4. Cross-disease basin-discriminating comorbidity codes
 
@@ -45,28 +47,31 @@ shared comorbidity axes. Supplements Fig. 4.
 
 - File: `FigS4_Fig04_crossdisease_discriminating_codes.png`
 
-## FigS5. Sepsis case study (C6)
+## FigS5. Sepsis — Kaplan–Meier survival curves for all-cause mortality (C6)
 
-Supplementary panels for the sepsis cohort as a representative of C6
-(multi-basin, majority criterion not satisfied).
+Kaplan–Meier survival curves for all-cause mortality in the sepsis
+cohort, a representative of C6 (multi-basin, majority criterion not
+satisfied), stratified by basin membership (Basin 1–3; n = 132,559).
 
-**(a)** Kaplan–Meier survival curves for all-cause mortality, stratified
-by basin membership (Basin 1–3; n = 132,559), colored by basin.
+- File: `FigS5_sepsis_mortality.png`
 
-**(b)** Kaplan–Meier curves for hospitalization, stratified by basin
-membership (Basin 1–3; n = 369,717, excluding pre-landmark admissions),
-colored by basin.
+## FigS6. Sepsis — Kaplan–Meier curves for disease-specific hospitalization (C6)
 
-**(c)** State occupancy heatmap before death. Rows are the 25 most
-frequent Allstates patterns among deceased patients (n = 61,074), sorted
-by peak timing (states that predominate earlier in the trajectory appear
-at top; states concentrated near death appear at bottom). Star (★)
-marks basin states.
+Kaplan–Meier curves for disease-specific hospitalization in the sepsis
+cohort, stratified by basin membership (Basin 1–3; n = 369,717,
+excluding pre-landmark admissions).
 
-- Files:
-  - `FigS5_sepsis_km_mortality.png` (a)
-  - `FigS5_sepsis_km_hospitalization.png` (b)
-  - `FigS5_sepsis_trajectory_heatmap.png` (c)
+- File: `FigS6_sepsis_hospitalization.png`
+
+## FigS7. Sepsis — state occupancy heatmap before death (C6)
+
+State occupancy heatmap before death in the sepsis cohort. Rows are
+the 25 most frequent Allstates patterns among deceased patients
+(n = 61,074), sorted by peak timing (states that predominate earlier
+in the trajectory appear at top; states concentrated near death appear
+at bottom). Star marks basin states.
+
+- File: `FigS7_sepsis_trajectory.png`
 
 ## Supplementary Data
 
