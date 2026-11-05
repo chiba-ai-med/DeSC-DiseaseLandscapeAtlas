@@ -93,8 +93,8 @@ for cat in ['C3', 'C4', 'C5', 'C6']:
 # Labels
 for _, r in multi.iterrows():
     ax.annotate(r['label'], (r['per_step_move_pct'], r['mean_asymmetry']),
-                fontsize=7, ha='left', va='bottom',
-                xytext=(4, 4), textcoords='offset points')
+                fontsize=14, ha='left', va='bottom',
+                xytext=(5, 5), textcoords='offset points')
 
 # Boundary lines
 ax.axhline(y=0.1, color='gray', linestyle='--', alpha=0.5, linewidth=1)
@@ -102,17 +102,17 @@ ax.axhline(y=0.45, color='gray', linestyle='--', alpha=0.5, linewidth=1)
 
 # Region labels on right margin (C6 is not a region — it spans all levels)
 ax.text(ax.get_xlim()[1] * 0.95, 0.05, 'C3', ha='right', va='center',
-        fontsize=10, color='gray', style='italic')
+        fontsize=20, color='gray', style='italic')
 ax.text(ax.get_xlim()[1] * 0.95, 0.275, 'C4', ha='right', va='center',
-        fontsize=10, color='gray', style='italic')
+        fontsize=20, color='gray', style='italic')
 ax.text(ax.get_xlim()[1] * 0.95, 0.65, 'C5', ha='right', va='center',
-        fontsize=10, color='gray', style='italic')
+        fontsize=20, color='gray', style='italic')
 
-ax.set_xlabel('Per-step transition rate (%)', fontsize=14)
-ax.set_ylabel('Mean transition asymmetry', fontsize=14)
-ax.set_title('Multi-basin disease classification\n(basin 0 excluded, full observation period)', fontsize=16)
-ax.legend(fontsize=11, loc='lower left')
-ax.tick_params(labelsize=11)
+ax.set_xlabel('Per-step transition rate (%)', fontsize=22)
+ax.set_ylabel('Mean transition asymmetry', fontsize=22)
+ax.set_title('Multi-basin disease classification\n(non-basin states excluded, full observation period)', fontsize=24)
+ax.legend(fontsize=18, loc='lower left')
+ax.tick_params(labelsize=18)
 
 plt.tight_layout()
 out_path = "plot/Figures/Supplementary/FigS2_pattern_space.png"
