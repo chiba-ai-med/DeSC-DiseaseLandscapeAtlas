@@ -37,13 +37,13 @@ sed \
 ![Figure S1]('"$FIGS"'/Supplementary/FigS1_Fig03_atlas_hospitalization.png)\
 ' \
   -e '/^### Figure S2\./i\
-![Figure S2]('"$FIGS"'/Supplementary/FigS2_pattern_space.png)\
+![Figure S2]('"$FIGS"'/Supplementary/FigS4_Fig04_crossdisease_discriminating_codes.png)\
 ' \
   -e '/^### Figure S3\./i\
 ![Figure S3]('"$FIGS"'/Supplementary/FigS3_basin_similarity.png)\
 ' \
   -e '/^### Figure S4\./i\
-![Figure S4]('"$FIGS"'/Supplementary/FigS4_Fig04_crossdisease_discriminating_codes.png)\
+![Figure S4]('"$FIGS"'/Supplementary/FigS2_pattern_space.png)\
 ' \
   -e '/^### Figure S5\./i\
 ![Figure S5]('"$FIGS"'/Supplementary/FigS5_sepsis_mortality.png)\
@@ -92,13 +92,13 @@ if [ -f manuscript_jp.md ]; then
 ![Figure S1]('"$FIGS"'/Supplementary/FigS1_Fig03_atlas_hospitalization.png)\
 ' \
     -e '/^### Figure S2\./i\
-![Figure S2]('"$FIGS"'/Supplementary/FigS2_pattern_space.png)\
+![Figure S2]('"$FIGS"'/Supplementary/FigS4_Fig04_crossdisease_discriminating_codes.png)\
 ' \
     -e '/^### Figure S3\./i\
 ![Figure S3]('"$FIGS"'/Supplementary/FigS3_basin_similarity.png)\
 ' \
     -e '/^### Figure S4\./i\
-![Figure S4]('"$FIGS"'/Supplementary/FigS4_Fig04_crossdisease_discriminating_codes.png)\
+![Figure S4]('"$FIGS"'/Supplementary/FigS2_pattern_space.png)\
 ' \
     -e '/^### Figure S5\./i\
 ![Figure S5]('"$FIGS"'/Supplementary/FigS5_sepsis_mortality.png)\
